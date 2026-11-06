@@ -42,6 +42,15 @@ This repository incorporates and is being developed from the MIT-licensed J.A.R.
 - The original MIT copyright and permission notice are retained in LICENSE.
 - This is an independently maintained derivative. New work should be recorded in commits and release notes.
 
+## Engineering improvements in this branch
+
+- Brain Dump reminders now parse 12-hour and 24-hour local times and roll past times forward to the next day.
+- Requested reminder times that cannot be parsed are reported as failures instead of silently scheduling at an unrelated time.
+- Unsupported Brain Dump task and device-action types are reported as unsupported rather than falsely marked complete.
+- To-do priority from the decomposed task is passed through to the local task service.
+- Accessibility and background-permission explanations have been rewritten to describe actual Android behavior without promising unrestricted background execution.
+- The Android launcher and accessibility labels use JARVIS Android branding.
+
 ## Development status
 
-A source import is not the same as a verified release. Run static analysis, tests, and device-level checks before publishing an APK.
+The upstream project history is retained as a merge parent. This branch adds project documentation, focused task-execution fixes, and GitHub Actions workflows. A source import is not a verified release: static analysis, tests, APK compilation, and device-level checks must pass before publishing.
