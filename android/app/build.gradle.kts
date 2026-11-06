@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         // Stable J.A.R.V.I.S. Android application identity.
-        applicationId = "com.privateagent.private_agent"
+        applicationId = "com.mokshith.jarvis"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // minSdk 26: foreground-service types, gesture APIs and notification channels
