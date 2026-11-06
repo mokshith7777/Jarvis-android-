@@ -115,10 +115,22 @@ Respond ONLY with valid JSON array:
         try {
           switch (task.type) {
             case 'reminder':
-              final title = (task.params['title'] ?? task.description).toString();
-              await CalendarReminderService.instance.addReminder(title);
+              final title = (task.params['title'] ?? task.description).toString().trim();
+              final rawTime = task.params['time']?.toString().trim();
+              final scheduledTime = _parseReminderTime(rawTime);
+              if (rawTime != null && rawTime.isNotEmpty && scheduledTime == null) {
+                task.executionStatus = 'failed';
+                task.resultSummary = 'Could not understand reminder time: $rawTime';
+                break;
+              }
+              await CalendarReminderService.instance.addReminder(
+                title,
+                time: scheduledTime,
+              );
               task.executionStatus = 'success';
-              task.resultSummary = 'Reminder scheduled: $title';
+              task.resultSummary = scheduledTime == null
+                  ? 'Reminder scheduled for one hour from now: $title'
+                  : 'Reminder scheduled for ${scheduledTime.toLocal()}: $title';
               break;
 
             case 'draft':
@@ -135,7 +147,8 @@ Respond ONLY with valid JSON array:
 
             case 'todo':
               final title = (task.params['title'] ?? task.description).toString();
-              await TodoService.instance.addTodo(title, priority: 'medium');
+              final priority = (task.params['priority'] ?? 'medium').toString();
+              await TodoService.instance.addTodo(title, priority: priority);
               task.executionStatus = 'success';
               task.resultSummary = 'Added to todo list: $title';
               break;
@@ -179,14 +192,14 @@ Respond ONLY with valid JSON array:
                 task.executionStatus = 'success';
                 task.resultSummary = 'Screenshot captured';
               } else {
-                task.executionStatus = 'completed';
-                task.resultSummary = 'Directive acknowledged: $act';
+                task.executionStatus = 'failed';
+                task.resultSummary = 'Unsupported system action: $act';
               }
               break;
 
             default:
-              task.executionStatus = 'completed';
-              task.resultSummary = task.description;
+              task.executionStatus = 'failed';
+              task.resultSummary = 'Unsupported task type: ${task.type}';
           }
         } catch (e) {
           task.executionStatus = 'failed';
@@ -210,4 +223,41 @@ Respond ONLY with valid JSON array:
       notifyListeners();
     }
   }
+}
+
+/// Parses a local reminder time such as "4:30 PM" or "16:30".
+/// If that time has already passed today, the reminder is scheduled for tomorrow.
+DateTime? _parseReminderTime(String? value, {DateTime? now}) {
+  if (value == null || value.trim().isEmpty) return null;
+  final match = RegExp(
+    r'^(\d{1,2}):(\d{2})\s*(AM|PM)?$',
+    caseSensitive: false,
+  ).firstMatch(value.trim());
+  if (match == null) return null;
+
+  var hour = int.tryParse(match.group(1)!);
+  final minute = int.tryParse(match.group(2)!);
+  final meridiem = match.group(3)?.toUpperCase();
+  if (hour == null || minute == null || minute > 59) return null;
+
+  if (meridiem != null) {
+    if (hour < 1 || hour > 12) return null;
+    hour = hour % 12;
+    if (meridiem == 'PM') hour += 12;
+  } else if (hour > 23) {
+    return null;
+  }
+
+  final current = now ?? DateTime.now();
+  var scheduled = DateTime(
+    current.year,
+    current.month,
+    current.day,
+    hour,
+    minute,
+  );
+  if (!scheduled.isAfter(current)) {
+    scheduled = scheduled.add(const Duration(days: 1));
+  }
+  return scheduled;
 }
