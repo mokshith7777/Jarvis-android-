@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">JARVIS Android</string>
-    <string name="accessibility_service_label">JARVIS Screen Control</string>
-    <string name="accessibility_service_description">JARVIS uses this service only when you enable it and request an automation task. It can inspect on-screen accessibility information and perform supported taps, swipes, scrolling, and text entry. Screen information may be sent to the AI provider you configure to complete a task. You can disable this service at any time to stop screen automation.</string>
+    <string name="app_name">J.A.R.V.I.S.</string>
+    <string name="accessibility_service_label">J.A.R.V.I.S. Screen Control</string>
+    <string name="accessibility_service_description">J.A.R.V.I.S. uses this service only when you enable it and request an automation task. It can inspect on-screen accessibility information and perform supported taps, swipes, scrolling, and text entry. Screen information may be sent to the AI provider you configure to complete a task. You can disable this service at any time to stop screen automation.</string>
 </resources>
