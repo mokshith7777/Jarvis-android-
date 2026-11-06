@@ -49,5 +49,8 @@ jobs:
             echo "No merge was created; upstream may already be integrated."
           fi
 
-      - name: Push integrated project
-        run: git push origin HEAD:main
+      - name: Rebase on the latest project commit and push
+        run: |
+          git fetch origin main
+          git rebase --rebase-merges origin/main
+          git push origin HEAD:main
