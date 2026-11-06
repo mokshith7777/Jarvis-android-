@@ -117,7 +117,7 @@ Respond ONLY with valid JSON array:
             case 'reminder':
               final title = (task.params['title'] ?? task.description).toString().trim();
               final rawTime = task.params['time']?.toString().trim();
-              final scheduledTime = _parseReminderTime(rawTime);
+              final scheduledTime = parseReminderTime(rawTime);
               if (rawTime != null && rawTime.isNotEmpty && scheduledTime == null) {
                 task.executionStatus = 'failed';
                 task.resultSummary = 'Could not understand reminder time: $rawTime';
@@ -227,7 +227,7 @@ Respond ONLY with valid JSON array:
 
 /// Parses a local reminder time such as "4:30 PM" or "16:30".
 /// If that time has already passed today, the reminder is scheduled for tomorrow.
-DateTime? _parseReminderTime(String? value, {DateTime? now}) {
+DateTime? parseReminderTime(String? value, {DateTime? now}) {
   if (value == null || value.trim().isEmpty) return null;
   final match = RegExp(
     r'^(\d{1,2}):(\d{2})\s*(AM|PM)?$',
