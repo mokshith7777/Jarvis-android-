@@ -70,7 +70,7 @@ class PermissionManagerService extends ChangeNotifier {
       AppPermissionInfo(
         type: AppPermissionType.microphone,
         title: 'Microphone & Voice Input',
-        description: 'Enables "Hey Jarvis" wake word detection and hands-free desk mode listening.',
+        description: 'Enables voice commands and speech recognition when you activate listening. Background listening depends on Android and device-specific restrictions.',
         icon: Icons.mic_rounded,
         isGranted: micStatus,
       ),
@@ -99,7 +99,7 @@ class PermissionManagerService extends ChangeNotifier {
       AppPermissionInfo(
         type: AppPermissionType.accessibility,
         title: 'Accessibility Service',
-        description: 'Empowers PrivateAgent to tap, type, scroll, and execute autonomous tasks across apps.',
+        description: 'Allows JARVIS to inspect accessibility information and perform supported taps, typing, and scrolling only after you enable the service and request an automation task.',
         icon: Icons.accessibility_new_rounded,
         isGranted: accessibilityStatus,
         isSystemSettingsOnly: true,
@@ -122,7 +122,7 @@ class PermissionManagerService extends ChangeNotifier {
       AppPermissionInfo(
         type: AppPermissionType.batteryOptimization,
         title: 'Unrestricted Background Battery',
-        description: 'Prevents Android OS from sleeping or terminating continuous listening in desk mode.',
+        description: 'Requests a battery-optimization exemption for explicitly enabled background features. Android and device manufacturers may still apply background limits.',
         icon: Icons.battery_charging_full_rounded,
         isGranted: batteryStatus,
         isSystemSettingsOnly: true,
