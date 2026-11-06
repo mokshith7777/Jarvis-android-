@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.privateagent.private_agent"
+    namespace = "com.mokshith.jarvis"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -17,7 +17,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Stable J.A.R.V.I.S. Android application identity.
         applicationId = "com.privateagent.private_agent"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
