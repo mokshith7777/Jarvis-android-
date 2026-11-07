@@ -1,21 +1,29 @@
 # Changelog
 
-All notable project changes are recorded here.
+## 2.0.0 - JARVIS PRO
 
-## Unreleased
+### Identity and platform
+- Set project creator and architect identity to Mokshith Reddy in assistant identity templates and personality responses.
+- Rename the Flutter package to `jarvis_android`.
+- Set Android application ID to `com.mokshith.jarvis.ai`.
+- Rename the visible app to JARVIS PRO.
+- Move native Kotlin sources to the matching Android package directory.
+- Migrate native MethodChannel identifiers to the JARVIS namespace.
 
-### Added
-- Project-specific architecture and build documentation.
-- GitHub Actions workflow for Flutter analysis, tests, and release APK artifact generation.
-- Deterministic unit tests for reminder-time parsing.
+### Visual system
+- Establish an obsidian base with neon-blue and crimson/solar-orange accents.
+- Update HUD, overlay, settings, and feature dialog accents.
 
-### Changed
-- Android launcher and accessibility service labels now use JARVIS Android branding.
-- Permission descriptions now state the real constraints around accessibility, microphone, and background execution.
-- Brain Dump to-do tasks preserve the requested priority.
+### Brand launch and documentation
+- Add a five-second portrait-oriented animated reactor intro before the main app.
+- Refresh the adaptive launcher icon artwork with obsidian, electric-blue, crimson, and gold reactor rings.
+- Expand README with feature explanations, APK installation, Android 13+ permission setup, Accessibility guidance, troubleshooting, source builds, and security notes.
 
-### Fixed
-- Brain Dump reminders now honor supported 12-hour and 24-hour time values.
-- Reminder times already passed today are scheduled for the next day.
-- Invalid reminder time values are reported instead of silently using the default time.
-- Unknown Brain Dump task and device-action types are reported as failures rather than successful completions.
+### Build pipeline
+- Target version 2.0.0 / version code 200.
+- Run Flutter dependency resolution, static analysis, tests, APK build, package identity verification, and APK signature verification in GitHub Actions.
+- Publish the verified APK as `JARVIS-PRO-v2.0.0.apk`.
+
+### Compatibility and safety
+- Preserve required third-party license notices.
+- Keep sensitive Android capabilities permission-gated and user-visible.

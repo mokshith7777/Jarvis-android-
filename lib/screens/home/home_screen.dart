@@ -15,6 +15,13 @@ import '../../services/todo_service.dart';
 import '../../services/voice_service.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/brain_dump_dialog.dart';
+import '../../widgets/optical_solver_dialog.dart';
+import '../../widgets/airspace_radar_dialog.dart';
+import '../../widgets/network_audit_dialog.dart';
+import '../../widgets/polyglot_diplomat_dialog.dart';
+import '../../widgets/arc_reactor_charging_dialog.dart';
+import '../../widgets/air_gestures_hud_widget.dart';
+import '../security/code_black_screen.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/glass_widgets.dart';
 import '../../widgets/jarvis_hud_widget.dart';
@@ -191,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           width: 120,
           alignment: OverlayAlignment.centerRight,
           flag: OverlayFlag.defaultFlag,
-          overlayTitle: 'PrivateAgent',
+          overlayTitle: 'JARVIS PRO',
           overlayContent: 'Agent bubble active',
           enableDrag: true,
           positionGravity: PositionGravity.auto,
@@ -220,22 +227,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme:
-            isJarvis ? const IconThemeData(color: Color(0xFF00E5FF)) : null,
+            isJarvis ? const IconThemeData(color: Color(0xFF1E6BFF)) : null,
         title: Row(
           children: [
-            Text(
-              isJarvis ? 'JARVIS' : 'PrivateAgent',
-              style: isJarvis
-                  ? const TextStyle(
-                      color: Color(0xFF00E5FF),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.8,
-                      fontFamily: 'monospace',
-                    )
-                  : const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                    ),
+            ShaderMask(
+              shaderCallback: (bounds) => (isJarvis
+                      ? AppTheme.ironManRedGoldGradient
+                      : AppTheme.neonBlueGradient)
+                  .createShader(bounds),
+              child: const Text(
+                'JARVIS PRO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.8,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ),
             const SizedBox(width: 10),
             ServiceStatusDot(enabled: _serviceEnabled),
@@ -249,13 +257,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             onPressed: _toggleOverlay,
             icon: Icon(
               _overlayActive ? Icons.bubble_chart : Icons.bubble_chart_outlined,
-              color: isJarvis ? const Color(0xFF00E5FF) : null,
+              color: isJarvis ? const Color(0xFF1E6BFF) : null,
             ),
           ),
           IconButton(
             tooltip: 'Settings',
             icon: Icon(Icons.settings_outlined,
-                color: isJarvis ? const Color(0xFF00E5FF) : null),
+                color: isJarvis ? const Color(0xFF1E6BFF) : null),
             onPressed: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -291,6 +299,75 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   // Sessions sidebar (navigation drawer)
   // ------------------------------------------------------------------
 
+
+  void _showStarkCommandCenter() {
+    final features = <({String title, String subtitle, IconData icon, WidgetBuilder builder, bool route})>[
+      (title: 'Optical Solver', subtitle: 'Visual reasoning workspace', icon: Icons.center_focus_strong, builder: (_) => const OpticalSolverDialog(), route: false),
+      (title: 'Airspace Radar', subtitle: 'Airspace radar visualization', icon: Icons.radar, builder: (_) => const AirspaceRadarDialog(), route: false),
+      (title: 'Wi-Fi & Network Audit', subtitle: 'Review local network diagnostics', icon: Icons.wifi_tethering, builder: (_) => const NetworkAuditDialog(), route: false),
+      (title: 'Polyglot Diplomat', subtitle: 'Translation and language tools', icon: Icons.translate, builder: (_) => const PolyglotDiplomatDialog(), route: false),
+      (title: 'Air Gestures', subtitle: 'Configure proximity gesture controls', icon: Icons.waving_hand, builder: (_) => const Dialog(child: SizedBox(width: 360, height: 500, child: AirGesturesHudWidget())), route: false),
+      (title: 'Reactor Telemetry', subtitle: 'Battery and charging diagnostics', icon: Icons.battery_charging_full, builder: (_) => const ArcReactorChargingDialog(), route: false),
+      (title: 'Brain Dump Decoupler', subtitle: 'Break a request into tasks', icon: Icons.account_tree, builder: (_) => const BrainDumpDialog(), route: false),
+      (title: 'Code Black', subtitle: 'Open the user-controlled security console', icon: Icons.shield, builder: (_) => const CodeBlackScreen(), route: true),
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF050B18),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8))),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  const Icon(Icons.hub_rounded, color: Color(0xFF1E6BFF)),
+                  const SizedBox(width: 10),
+                  const Expanded(child: Text('STARK COMMAND CENTER', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2))),
+                  IconButton(onPressed: () => Navigator.pop(sheetContext), icon: const Icon(Icons.close, color: Colors.white70)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: features.length,
+                  separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
+                  itemBuilder: (ctx, index) {
+                    final feature = features[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      leading: Icon(feature.icon, color: const Color(0xFF3898FF)),
+                      title: Text(feature.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      subtitle: Text(feature.subtitle, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.white54),
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        if (feature.route) {
+                          Navigator.of(context).push(MaterialPageRoute(builder: feature.builder));
+                        } else {
+                          showDialog<void>(context: context, builder: feature.builder);
+                        }
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _sessionsDrawer(ThemeData theme) {
     final entries = _executor.historyEntries;
     final isDark = theme.brightness == Brightness.dark;
@@ -308,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PrivateAgent',
+                    'JARVIS PRO',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
@@ -413,7 +490,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.alt_route_rounded, color: Color(0xFF00E5FF)),
+              leading: const Icon(Icons.alt_route_rounded, color: Color(0xFF1E6BFF)),
               title: const Text('Multi-Task Decoupler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               subtitle: const Text(
                 'Chaotic Brain Dump parallel engine',
@@ -426,6 +503,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   barrierColor: Colors.black.withValues(alpha: 0.65),
                   builder: (_) => const BrainDumpDialog(),
                 );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.hub_rounded, color: Color(0xFF1E6BFF)),
+              title: const Text('Stark Command Center', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              subtitle: const Text('Open JARVIS PRO feature hub', style: TextStyle(fontSize: 11)),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showStarkCommandCenter();
               },
             ),
             const Divider(indent: 12, endIndent: 12),

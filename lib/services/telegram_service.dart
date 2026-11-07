@@ -107,7 +107,7 @@ class TelegramService extends ChangeNotifier {
     if (allowed.isEmpty && owner.isEmpty) {
       await settings.setTelegramOwnerChatId(chatId);
       await sendMessage(chatId,
-          '👋 PrivateAgent paired with this chat. Send me any task, e.g.\n'
+          '👋 JARVIS PRO paired with this chat. Send me any task, e.g.\n'
           '"Open YouTube and search for lofi music".\n\n'
           'Commands: /status /screenshot /cancel');
       return;
@@ -144,7 +144,7 @@ class TelegramService extends ChangeNotifier {
   /// Sends a PNG screenshot (base64) as a photo message.
   Future<bool> sendScreenshot(String chatId, String base64Png,
       {String? caption}) async {
-    return sendPhoto(chatId, base64Png, caption: caption ?? 'PrivateAgent screenshot');
+    return sendPhoto(chatId, base64Png, caption: caption ?? 'JARVIS PRO screenshot');
   }
 
   /// Sends a photo (base64 string or byte array) to Telegram with custom caption.

@@ -177,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return _pageShell(
       theme,
       icon: Icons.shield_outlined,
-      title: 'Meet J.A.R.V.I.S.',
+      title: 'Meet JARVIS PRO',
       subtitle: 'Your next-generation Stark autonomous AI companion & phone co-pilot. '
           'Voice-first intelligence, mid-air air gestures, live charging telemetry, '
           'and autonomous device automation.',
@@ -276,7 +276,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       theme,
       icon: Icons.accessibility_new_outlined,
       title: 'Enable screen control',
-      subtitle: 'PrivateAgent works through an Android accessibility service. '
+      subtitle: 'JARVIS PRO works through an Android accessibility service. '
           'This is what lets it read the screen and tap buttons for you.',
       children: [
         Card(
@@ -295,8 +295,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 Expanded(
                   child: Text(
                     _serviceEnabled
-                        ? 'PrivateAgent Screen Control is enabled'
-                        : 'PrivateAgent Screen Control is OFF',
+                        ? 'JARVIS PRO Screen Control is enabled'
+                        : 'JARVIS PRO Screen Control is OFF',
                     style: theme.textTheme.titleSmall
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
@@ -325,7 +325,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         const SizedBox(height: 16),
         Text(
           'On Android 13 and newer you may need to open App Info → ⋮ menu → '
-          '"Allow restricted settings" first, then enable "PrivateAgent '
+          '"Allow restricted settings" first, then enable "JARVIS PRO '
           'Screen Control" under Accessibility → Downloaded apps.',
           style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant, height: 1.5),

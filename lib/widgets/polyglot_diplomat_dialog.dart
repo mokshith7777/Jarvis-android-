@@ -41,7 +41,7 @@ class _PolyglotDiplomatDialogState extends State<PolyglotDiplomatDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const cyan = Color(0xFF00E5FF);
+    const cyan = Color(0xFF1E6BFF);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
@@ -280,7 +280,7 @@ class _PolyglotDiplomatDialogState extends State<PolyglotDiplomatDialog> {
       value: current,
       dropdownColor: const Color(0xFF0D1D2D),
       underline: const SizedBox(),
-      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF00E5FF)),
+      icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1E6BFF)),
       style: const TextStyle(
         color: Colors.white,
         fontFamily: 'monospace',

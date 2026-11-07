@@ -65,7 +65,7 @@ class _BrainDumpDialogState extends State<BrainDumpDialog> {
 
   @override
   Widget build(BuildContext context) {
-    const cyan = Color(0xFF00E5FF);
+    const cyan = Color(0xFF1E6BFF);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),

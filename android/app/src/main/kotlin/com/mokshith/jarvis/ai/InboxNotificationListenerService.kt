@@ -1,5 +1,4 @@
-package com.mokshith.jarvis
-
+package com.mokshith.jarvis.ai
 import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification

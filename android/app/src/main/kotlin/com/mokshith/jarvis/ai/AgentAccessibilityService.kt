@@ -1,5 +1,4 @@
-package com.mokshith.jarvis
-
+package com.mokshith.jarvis.ai
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Bitmap

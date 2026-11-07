@@ -38,7 +38,7 @@ Future<void> main() async {
   _wireTelegram(executor, settings);
   _wireOverlayCommands(executor);
 
-  runApp(const PrivateAgentApp());
+  runApp(const JarvisProApp());
 }
 
 /// Telegram bot -> task executor wiring.

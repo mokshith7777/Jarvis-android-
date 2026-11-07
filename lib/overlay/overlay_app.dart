@@ -54,9 +54,9 @@ class _OverlayAppState extends State<OverlayApp>
       return const Color(0xFF00E676); // Emerald Green (Listening)
     }
     if (_busy) {
-      return const Color(0xFFFFB300); // Solar Gold / Amber (Computing / Speaking)
+      return const Color(0xFFFF4E00); // Solar Gold / Amber (Computing / Speaking)
     }
-    return const Color(0xFF00E5FF); // Electric Cyan (Standby)
+    return const Color(0xFF1E6BFF); // Electric Cyan (Standby)
   }
 
   @override
@@ -307,22 +307,22 @@ class _OverlayAppState extends State<OverlayApp>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF00E5FF).withValues(alpha: 0.08),
+        color: const Color(0xFF1E6BFF).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFF1E6BFF).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome, color: Color(0xFF00E5FF), size: 15),
+              const Icon(Icons.auto_awesome, color: Color(0xFF1E6BFF), size: 15),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   _summaryTitle.toUpperCase(),
                   style: const TextStyle(
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                     fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.8,
@@ -364,9 +364,9 @@ class _OverlayAppState extends State<OverlayApp>
               Expanded(
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-                    foregroundColor: const Color(0xFF00E5FF),
-                    side: const BorderSide(color: Color(0xFF00E5FF)),
+                    backgroundColor: const Color(0xFF1E6BFF).withValues(alpha: 0.25),
+                    foregroundColor: const Color(0xFF1E6BFF),
+                    side: const BorderSide(color: Color(0xFF1E6BFF)),
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     elevation: 0,
                   ),
@@ -395,10 +395,10 @@ class _OverlayAppState extends State<OverlayApp>
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
-              border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.35)),
+              color: const Color(0xFF1E6BFF).withValues(alpha: 0.12),
+              border: Border.all(color: const Color(0xFF1E6BFF).withValues(alpha: 0.35)),
             ),
-            child: const Icon(Icons.article_outlined, color: Color(0xFF00E5FF), size: 30),
+            child: const Icon(Icons.article_outlined, color: Color(0xFF1E6BFF), size: 30),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -418,9 +418,9 @@ class _OverlayAppState extends State<OverlayApp>
           const SizedBox(height: 16),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.2),
-              foregroundColor: const Color(0xFF00E5FF),
-              side: const BorderSide(color: Color(0xFF00E5FF), width: 1.2),
+              backgroundColor: const Color(0xFF1E6BFF).withValues(alpha: 0.2),
+              foregroundColor: const Color(0xFF1E6BFF),
+              side: const BorderSide(color: Color(0xFF1E6BFF), width: 1.2),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

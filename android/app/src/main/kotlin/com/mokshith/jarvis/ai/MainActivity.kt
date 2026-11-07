@@ -1,5 +1,4 @@
-package com.mokshith.jarvis
-
+package com.mokshith.jarvis.ai
 import android.app.ActivityManager
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
@@ -39,13 +38,13 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
- * Bridges Flutter -> [AgentAccessibilityService] via `com.privateagent/accessibility`
- * and continuous hands-free voice via `com.privateagent/speech`.
+ * Bridges Flutter -> [AgentAccessibilityService] via `com.mokshith.jarvis/accessibility`
+ * and continuous hands-free voice via `com.mokshith.jarvis/speech`.
  */
 class MainActivity : FlutterActivity() {
 
-    private val channelName = "com.privateagent/accessibility"
-    private val speechChannelName = "com.privateagent/speech"
+    private val channelName = "com.mokshith.jarvis/accessibility"
+    private val speechChannelName = "com.mokshith.jarvis/speech"
     private var accessibilityChannel: MethodChannel? = null
     private var speechChannel: MethodChannel? = null
     private var speechRecognizer: SpeechRecognizer? = null
@@ -825,7 +824,7 @@ class MainActivity : FlutterActivity() {
                         if (service == null) {
                             result.error(
                                 "SERVICE_OFF",
-                                "PrivateAgent accessibility service is not enabled",
+                                "JARVIS PRO accessibility service is not enabled",
                                 null
                             )
                         } else {
@@ -841,7 +840,7 @@ class MainActivity : FlutterActivity() {
                         if (service == null) {
                             result.error(
                                 "SERVICE_OFF",
-                                "PrivateAgent accessibility service is not enabled",
+                                "JARVIS PRO accessibility service is not enabled",
                                 null
                             )
                         } else {

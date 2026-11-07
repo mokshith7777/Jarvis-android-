@@ -391,7 +391,7 @@ class JarvisService extends ChangeNotifier {
   /// Displays a modal dialog safely using the global navigation key.
   void _showModalSafely(Widget dialog) {
     try {
-      final nav = PrivateAgentApp.navigatorKey.currentState;
+      final nav = JarvisProApp.navigatorKey.currentState;
       if (nav != null && nav.context.mounted) {
         showDialog(
           context: nav.context,
@@ -1199,7 +1199,7 @@ class JarvisService extends ChangeNotifier {
       return;
     }
 
-    // 3e-2b. Creator & Builder Identity (Built by Abuzar)
+    // 3e-2b. Creator & Builder Identity (Built by Mokshith Reddy)
     if (lower.contains('who built you') ||
         lower.contains('who created you') ||
         lower.contains('who made you') ||
@@ -1219,7 +1219,7 @@ class JarvisService extends ChangeNotifier {
       final reply = PersonalityService.instance.getCreatorAnswer();
       _lastJarvisSpeech = reply;
       _phase = JarvisPhase.speaking;
-      _statusMessage = 'CREATOR // ABUZAR';
+      _statusMessage = 'CREATOR // mokshith';
       notifyListeners();
       await _voice.speak(reply);
       await _startFollowUpListening();

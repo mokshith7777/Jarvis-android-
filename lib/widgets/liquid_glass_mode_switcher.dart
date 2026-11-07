@@ -34,7 +34,7 @@ class LiquidGlassModeSwitcher extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: isJarvis
-                    ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
+                    ? const Color(0xFF1E6BFF).withValues(alpha: 0.15)
                     : (isDark
                         ? Colors.black.withValues(alpha: 0.35)
                         : Colors.black.withValues(alpha: 0.06)),
@@ -58,7 +58,7 @@ class LiquidGlassModeSwitcher extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(
                     color: isJarvis
-                        ? const Color(0xFF00E5FF).withValues(alpha: 0.35)
+                        ? const Color(0xFF1E6BFF).withValues(alpha: 0.35)
                         : (isDark
                             ? Colors.white.withValues(alpha: 0.14)
                             : Colors.black.withValues(alpha: 0.08)),
@@ -95,8 +95,8 @@ class LiquidGlassModeSwitcher extends StatelessWidget {
                         mode: AppMode.jarvis,
                         label: 'JARVIS',
                         icon: Icons.graphic_eq_rounded,
-                        activeColor: const Color(0xFF00E5FF),
-                        glowColor: const Color(0xFF00E5FF),
+                        activeColor: const Color(0xFF1E6BFF),
+                        glowColor: const Color(0xFF1E6BFF),
                         isMonospace: true,
                       ),
                     ),

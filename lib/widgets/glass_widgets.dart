@@ -496,7 +496,7 @@ class LiquidGlassScaffold extends StatelessWidget {
                 gradient: RadialGradient(
                   colors: [
                     isJarvis
-                        ? const Color(0xFF00E5FF).withValues(alpha: 0.12)
+                        ? const Color(0xFF1E6BFF).withValues(alpha: 0.12)
                         : const Color(0xFF6366F1).withValues(alpha: 0.14),
                     Colors.transparent,
                   ],

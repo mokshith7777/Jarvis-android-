@@ -78,17 +78,17 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                color: const Color(0xFF1E6BFF).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
+                  color: const Color(0xFF1E6BFF).withValues(alpha: 0.6),
                   width: 1.2,
                 ),
               ),
               child: const Icon(
                 Icons.shield_outlined,
                 size: 16,
-                color: Color(0xFF00E5FF),
+                color: Color(0xFF1E6BFF),
               ),
             ),
             const SizedBox(width: 10),
@@ -184,17 +184,17 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                    color: const Color(0xFF1E6BFF).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
+                      color: const Color(0xFF1E6BFF).withValues(alpha: 0.4),
                       width: 1.0,
                     ),
                   ),
                   child: const Icon(
                     Icons.view_in_ar_rounded,
                     size: 20,
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -265,7 +265,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    const activeColor = Color(0xFF00E5FF);
+    const activeColor = Color(0xFF1E6BFF);
     final borderColor = isSelected ? activeColor : theme.colorScheme.outline.withValues(alpha: 0.25);
     final bgColor = isSelected
         ? activeColor.withValues(alpha: 0.12)
@@ -877,7 +877,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+          color: const Color(0xFF1E6BFF).withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -891,12 +891,12 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                    color: const Color(0xFF1E6BFF).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.bolt,
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                     size: 22,
                   ),
                 ),
@@ -916,7 +916,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF00E5FF),
+                          color: Color(0xFF1E6BFF),
                         ),
                       ),
                     ],
@@ -924,10 +924,10 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 ),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00E5FF).withValues(alpha: 0.2),
-                    foregroundColor: const Color(0xFF00E5FF),
+                    backgroundColor: const Color(0xFF1E6BFF).withValues(alpha: 0.2),
+                    foregroundColor: const Color(0xFF1E6BFF),
                     elevation: 0,
-                    side: const BorderSide(color: Color(0xFF00E5FF), width: 1),
+                    side: const BorderSide(color: Color(0xFF1E6BFF), width: 1),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     minimumSize: Size.zero,
                   ),
@@ -1167,10 +1167,10 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00E5FF).withValues(alpha: 0.08),
+                  color: const Color(0xFF1E6BFF).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
+                    color: const Color(0xFF1E6BFF).withValues(alpha: 0.3),
                   ),
                 ),
                 child: Column(
@@ -1181,7 +1181,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                         const Icon(
                           Icons.radar_outlined,
                           size: 14,
-                          color: Color(0xFF00E5FF),
+                          color: Color(0xFF1E6BFF),
                         ),
                         const SizedBox(width: 6),
                         const Text(
@@ -1190,7 +1190,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.2,
-                            color: Color(0xFF00E5FF),
+                            color: Color(0xFF1E6BFF),
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -1199,7 +1199,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                           '${vision.lastResult!.timestamp.hour.toString().padLeft(2, '0')}:${vision.lastResult!.timestamp.minute.toString().padLeft(2, '0')}',
                           style: const TextStyle(
                             fontSize: 10,
-                            color: Color(0xFF00E5FF),
+                            color: Color(0xFF1E6BFF),
                             fontFamily: 'monospace',
                           ),
                         ),
@@ -1224,7 +1224,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
   // 3b-2. Stark Superpowers & Cyber Suite Card
   // ---------------------------------------------------------------------------
   Widget _starkSuperpowersCard(ThemeData theme) {
-    const cyan = Color(0xFF00E5FF);
+    const cyan = Color(0xFF1E6BFF);
 
     return Card(
       child: Padding(
@@ -1278,14 +1278,14 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
             // 2. Arc Reactor Charging Telemetry
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.bolt, color: Color(0xFFFFD54F)),
+              leading: const Icon(Icons.bolt, color: Color(0xFFFF6D00)),
               title: const Text('Arc Reactor Charging Telemetry'),
               subtitle: const Text('Cinematic glowing HUD & vocal wattage telemetry upon charger connection'),
               trailing: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFD54F).withValues(alpha: 0.15),
-                  foregroundColor: const Color(0xFFFFD54F),
-                  side: const BorderSide(color: Color(0xFFFFD54F), width: 1.0),
+                  backgroundColor: const Color(0xFFFF6D00).withValues(alpha: 0.15),
+                  foregroundColor: const Color(0xFFFF6D00),
+                  side: const BorderSide(color: Color(0xFFFF6D00), width: 1.0),
                 ),
                 onPressed: () {
                   showDialog(
@@ -1401,14 +1401,14 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
             // 7. Optical HUD Solver
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.document_scanner_outlined, color: Color(0xFFFFB300)),
+              leading: const Icon(Icons.document_scanner_outlined, color: Color(0xFFFF4E00)),
               title: const Text('Real-Time Optical HUD Solver'),
               subtitle: const Text('Point camera at math equations, monitor stack traces, or split dinner bills'),
               trailing: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFB300).withValues(alpha: 0.15),
-                  foregroundColor: const Color(0xFFFFB300),
-                  side: const BorderSide(color: Color(0xFFFFB300), width: 1.0),
+                  backgroundColor: const Color(0xFFFF4E00).withValues(alpha: 0.15),
+                  foregroundColor: const Color(0xFFFF4E00),
+                  side: const BorderSide(color: Color(0xFFFF4E00), width: 1.0),
                 ),
                 onPressed: () {
                   showDialog(
@@ -1944,7 +1944,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                           color: commute.lastStatus!.trafficSeverity == TrafficSeverity.heavy
                               ? const Color(0xFFFF5252)
                               : (commute.lastStatus!.trafficSeverity == TrafficSeverity.moderate
-                                  ? const Color(0xFFFFB300)
+                                  ? const Color(0xFFFF4E00)
                                   : const Color(0xFF00E676)),
                         ),
                         const SizedBox(width: 6),
@@ -1957,7 +1957,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                             color: commute.lastStatus!.trafficSeverity == TrafficSeverity.heavy
                                 ? const Color(0xFFFF5252)
                                 : (commute.lastStatus!.trafficSeverity == TrafficSeverity.moderate
-                                    ? const Color(0xFFFFB300)
+                                    ? const Color(0xFFFF4E00)
                                     : const Color(0xFF00E676)),
                           ),
                         ),
@@ -2034,7 +2034,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.1,
-                  color: Color(0xFF00E5FF),
+                  color: Color(0xFF1E6BFF),
                 ),
               ),
               const SizedBox(height: 8),
@@ -2141,7 +2141,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.1,
-                  color: Color(0xFF00E5FF),
+                  color: Color(0xFF1E6BFF),
                 ),
               ),
               const SizedBox(height: 4),
@@ -2509,7 +2509,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF00E5FF).withValues(alpha: 0.25),
+                        const Color(0xFF1E6BFF).withValues(alpha: 0.25),
                         const Color(0xFF7C4DFF).withValues(alpha: 0.25),
                       ],
                       begin: Alignment.topLeft,
@@ -2517,13 +2517,13 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                     ),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.6),
+                      color: const Color(0xFF1E6BFF).withValues(alpha: 0.6),
                       width: 1.2,
                     ),
                   ),
                   child: const Icon(
                     Icons.auto_awesome_motion_rounded,
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                     size: 20,
                   ),
                 ),
@@ -2545,10 +2545,10 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                              color: const Color(0xFF1E6BFF).withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+                                color: const Color(0xFF1E6BFF).withValues(alpha: 0.5),
                                 width: 0.7,
                               ),
                             ),
@@ -2557,7 +2557,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF00E5FF),
+                                color: Color(0xFF1E6BFF),
                                 letterSpacing: 0.6,
                               ),
                             ),
@@ -2593,7 +2593,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
               theme: theme,
               fileName: 'SOUL.md',
               slotBadge: 'SLOT 1',
-              badgeColor: const Color(0xFF00E5FF),
+              badgeColor: const Color(0xFF1E6BFF),
               icon: Icons.shield_outlined,
               description:
                   'Defines agent persona, British poise, salutation ("sir"), behavioral guardrails, and ethics.',
@@ -2615,7 +2615,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
               theme: theme,
               fileName: 'USER.md',
               slotBadge: 'SLOT 2',
-              badgeColor: const Color(0xFFFFB300),
+              badgeColor: const Color(0xFFFF4E00),
               icon: Icons.person_outline_rounded,
               description:
                   'Operator profile, cadence preferences, daily routines, and dynamically synthesized memory facts.',
