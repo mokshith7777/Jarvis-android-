@@ -391,7 +391,7 @@ class JarvisService extends ChangeNotifier {
   /// Displays a modal dialog safely using the global navigation key.
   void _showModalSafely(Widget dialog) {
     try {
-      final nav = PrivateAgentApp.navigatorKey.currentState;
+      final nav = JarvisProApp.navigatorKey.currentState;
       if (nav != null && nav.context.mounted) {
         showDialog(
           context: nav.context,
