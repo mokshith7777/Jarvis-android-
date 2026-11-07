@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/splash/jarvis_pro_intro.dart';
 
 import 'screens/home/home_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
@@ -65,14 +66,16 @@ class _JarvisProAppState extends State<JarvisProApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: JarvisProApp.navigatorKey,
-      title: 'PrivateAgent',
+      title: 'JARVIS PRO',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: _settings.themeMode,
-      home: _settings.onboardingComplete
-          ? const HomeScreen()
-          : OnboardingScreen(onFinished: () => setState(() {})),
+      home: JarvisProIntro(
+        child: _settings.onboardingComplete
+            ? const HomeScreen()
+            : OnboardingScreen(onFinished: () => setState(() {})),
+      ),
     );
   }
 }
