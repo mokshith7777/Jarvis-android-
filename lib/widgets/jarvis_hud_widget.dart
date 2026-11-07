@@ -20,8 +20,8 @@ import 'brain_dump_dialog.dart';
 /// - Mid-Screen Tap-to-Talk activation with tactile haptic and holographic sonic ripple feedback.
 /// - Zero on-screen chat message clutter or bottom mic docks — pure cinematic holographic entity.
 /// - Dynamic real-time color shifting:
-///   * LISTENING / IDLE: Electric Arc-Reactor Cyan (0xFF00E5FF).
-///   * SPEAKING: Radiant Stark Amber / Solar Gold (0xFFFFB300) directly matching jarvi.jpg.
+///   * LISTENING / IDLE: Electric Arc-Reactor Cyan (0xFF1E6BFF).
+///   * SPEAKING: Radiant Stark Amber / Solar Gold (0xFFFF4E00) directly matching jarvi.jpg.
 ///   * COMPUTING / THINKING: High-Energy Quantum Fusion Violet-Gold (0xFFBA68C8).
 /// - Ultra-cool, interesting 3D live animation:
 ///   * Multi-axis gyroscopic 3D rotation with precession & perspective depth.
@@ -180,9 +180,9 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
 
   /// Interpolates the theme color smoothly between Cyan and Gold
   Color _getDynamicThemeColor(double goldFactor) {
-    const cyanColor = Color(0xFF00E5FF);
+    const cyanColor = Color(0xFF1E6BFF);
     const purpleColor = Color(0xFFBA68C8);
-    const goldColor = Color(0xFFFFB300);
+    const goldColor = Color(0xFFFF4E00);
 
     if (goldFactor <= 0.5) {
       return Color.lerp(cyanColor, purpleColor, goldFactor * 2.0)!;
@@ -251,12 +251,12 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00E5FF).withValues(alpha: 0.18),
+                            color: const Color(0xFF1E6BFF).withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: const Color(0xFF00E5FF), width: 1.4),
+                            border: Border.all(color: const Color(0xFF1E6BFF), width: 1.4),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                                color: const Color(0xFF1E6BFF).withValues(alpha: 0.35),
                                 blurRadius: 14,
                               ),
                             ],
@@ -264,13 +264,13 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.pan_tool, color: Color(0xFF00E5FF), size: 15),
+                              const Icon(Icons.pan_tool, color: Color(0xFF1E6BFF), size: 15),
                               const SizedBox(width: 8),
                               Flexible(
                                 child: Text(
                                   banner,
                                   style: const TextStyle(
-                                    color: Color(0xFF00E5FF),
+                                    color: Color(0xFF1E6BFF),
                                     fontFamily: 'monospace',
                                     fontSize: 10.5,
                                     fontWeight: FontWeight.w800,
@@ -383,7 +383,7 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                               listenable: SettingsService.instance,
                               builder: (context, _) {
                                 final isAlwaysOn = SettingsService.instance.jarvisAlwaysOn;
-                                final onColor = const Color(0xFF00E5FF);
+                                final onColor = const Color(0xFF1E6BFF);
                                 final offColor = Colors.white.withValues(alpha: 0.45);
                                 final color = isAlwaysOn ? onColor : offColor;
 
@@ -460,10 +460,10 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+                                  color: const Color(0xFF1E6BFF).withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: const Color(0xFF00E5FF).withValues(alpha: 0.5),
+                                    color: const Color(0xFF1E6BFF).withValues(alpha: 0.5),
                                     width: 1.2,
                                   ),
                                 ),
@@ -473,13 +473,13 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                                     Icon(
                                       Icons.alt_route_rounded,
                                       size: 13,
-                                      color: Color(0xFF00E5FF),
+                                      color: Color(0xFF1E6BFF),
                                     ),
                                     SizedBox(width: 5),
                                     Text(
                                       'MULTITASK',
                                       style: TextStyle(
-                                        color: Color(0xFF00E5FF),
+                                        color: Color(0xFF1E6BFF),
                                         fontSize: 9.5,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 1.2,
@@ -538,7 +538,7 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                               listenable: AirGestureService.instance,
                               builder: (context, _) {
                                 final isAir = AirGestureService.instance.isEnabled;
-                                final airColor = isAir ? const Color(0xFF00E5FF) : themeColor;
+                                final airColor = isAir ? const Color(0xFF1E6BFF) : themeColor;
                                 return GestureDetector(
                                   onTap: () {
                                     HapticFeedback.mediumImpact();
@@ -603,7 +603,7 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
                               builder: (context, _) {
                                 final style = SettingsService.instance.jarvisScreenStyle;
                                 final isArc = style == JarvisScreenStyle.arcReactor;
-                                final podColor = isArc ? const Color(0xFF00E5FF) : const Color(0xFF64FFDA);
+                                final podColor = isArc ? const Color(0xFF1E6BFF) : const Color(0xFF64FFDA);
 
                                 return GestureDetector(
                                   onTap: () {
@@ -930,10 +930,10 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
   /// - Translucent male holographic 3D avatar bust inspired by jarvis avrtar.avif
   /// - Minimal, clean, cinematic look without floating telemetry clutter
   /// - Dynamic real-time color shifting:
-  ///   * IDLE: Electric Arc Cyan (0xFF00E5FF)
+  ///   * IDLE: Electric Arc Cyan (0xFF1E6BFF)
   ///   * LISTENING: Calm Pulsing Electric Cyan
   ///   * COMPUTING: High-Energy Quantum Fusion Violet-Purple (0xFFBA68C8)
-  ///   * SPEAKING: Radiant Stark Amber / Solar Gold (0xFFFFB300)
+  ///   * SPEAKING: Radiant Stark Amber / Solar Gold (0xFFFF4E00)
   /// - Rotating elliptical holographic emitter pedestal beneath with glowing floor rings and conical light beam
   /// - Gentle chest Arc Reactor acoustic ripple (steady, calm, non-erratic)
   /// - Fine digital horizontal scanlines sweeping vertically over the suit
@@ -1175,7 +1175,7 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
 
     switch (_jarvis.phase) {
       case JarvisPhase.listening:
-        color = const Color(0xFF00E5FF);
+        color = const Color(0xFF1E6BFF);
         label = 'LISTENING';
         icon = Icons.graphic_eq_rounded;
         break;
@@ -1355,7 +1355,7 @@ class _JarvisHudWidgetState extends State<JarvisHudWidget>
 /// Paints an ultra-minimal, aesthetic holographic quantum starfield/matrix
 class JarvisCyberGridPainter extends CustomPainter {
   final Color color;
-  const JarvisCyberGridPainter({this.color = const Color(0xFF00E5FF)});
+  const JarvisCyberGridPainter({this.color = const Color(0xFF1E6BFF)});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1391,7 +1391,7 @@ class JarvisCyberGridPainter extends CustomPainter {
 class JarvisCornerBracketsPainter extends CustomPainter {
   final Color color;
 
-  const JarvisCornerBracketsPainter({this.color = const Color(0xFF00E5FF)});
+  const JarvisCornerBracketsPainter({this.color = const Color(0xFF1E6BFF)});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1705,7 +1705,7 @@ class JarvisCoreAcousticWavePainter extends CustomPainter {
 
       if (alpha > 0.02) {
         final shockPaint = Paint()
-          ..color = (isSpeaking ? const Color(0xFFFFD54F) : color)
+          ..color = (isSpeaking ? const Color(0xFFFF6D00) : color)
               .withValues(alpha: alpha.clamp(0.0, 1.0))
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.8 * (1.0 - progress * 0.5);
