@@ -230,19 +230,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             isJarvis ? const IconThemeData(color: Color(0xFF1E6BFF)) : null,
         title: Row(
           children: [
-            Text(
-              isJarvis ? 'JARVIS' : 'JARVIS PRO',
-              style: isJarvis
-                  ? const TextStyle(
-                      color: Color(0xFF1E6BFF),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.8,
-                      fontFamily: 'monospace',
-                    )
-                  : const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                    ),
+            ShaderMask(
+              shaderCallback: (bounds) => (isJarvis
+                      ? AppTheme.ironManRedGoldGradient
+                      : AppTheme.neonBlueGradient)
+                  .createShader(bounds),
+              child: const Text(
+                'JARVIS PRO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.8,
+                  fontFamily: 'monospace',
+                ),
+              ),
             ),
             const SizedBox(width: 10),
             ServiceStatusDot(enabled: _serviceEnabled),
