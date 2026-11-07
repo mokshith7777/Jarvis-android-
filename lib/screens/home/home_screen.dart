@@ -191,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           width: 120,
           alignment: OverlayAlignment.centerRight,
           flag: OverlayFlag.defaultFlag,
-          overlayTitle: 'PrivateAgent',
+          overlayTitle: 'JARVIS PRO',
           overlayContent: 'Agent bubble active',
           enableDrag: true,
           positionGravity: PositionGravity.auto,
@@ -220,14 +220,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme:
-            isJarvis ? const IconThemeData(color: Color(0xFF00E5FF)) : null,
+            isJarvis ? const IconThemeData(color: Color(0xFF1E6BFF)) : null,
         title: Row(
           children: [
             Text(
-              isJarvis ? 'JARVIS' : 'PrivateAgent',
+              isJarvis ? 'JARVIS' : 'JARVIS PRO',
               style: isJarvis
                   ? const TextStyle(
-                      color: Color(0xFF00E5FF),
+                      color: Color(0xFF1E6BFF),
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2.8,
                       fontFamily: 'monospace',
@@ -249,13 +249,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             onPressed: _toggleOverlay,
             icon: Icon(
               _overlayActive ? Icons.bubble_chart : Icons.bubble_chart_outlined,
-              color: isJarvis ? const Color(0xFF00E5FF) : null,
+              color: isJarvis ? const Color(0xFF1E6BFF) : null,
             ),
           ),
           IconButton(
             tooltip: 'Settings',
             icon: Icon(Icons.settings_outlined,
-                color: isJarvis ? const Color(0xFF00E5FF) : null),
+                color: isJarvis ? const Color(0xFF1E6BFF) : null),
             onPressed: () => Navigator.of(
               context,
             ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
@@ -308,7 +308,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'PrivateAgent',
+                    'JARVIS PRO',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.5,
@@ -413,7 +413,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.alt_route_rounded, color: Color(0xFF00E5FF)),
+              leading: const Icon(Icons.alt_route_rounded, color: Color(0xFF1E6BFF)),
               title: const Text('Multi-Task Decoupler', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               subtitle: const Text(
                 'Chaotic Brain Dump parallel engine',
