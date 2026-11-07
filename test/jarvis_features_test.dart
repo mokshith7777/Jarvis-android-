@@ -1,45 +1,45 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:private_agent/models/task_step.dart';
-import 'package:private_agent/services/ai_service.dart';
-import 'package:private_agent/services/app_usage_service.dart';
-import 'package:private_agent/services/calendar_reminder_service.dart';
-import 'package:private_agent/services/commute_traffic_service.dart';
-import 'package:private_agent/services/conversational_memory_service.dart';
-import 'package:private_agent/services/email_triage_service.dart';
-import 'package:private_agent/services/finance_tracking_service.dart';
-import 'package:private_agent/services/form_filling_service.dart';
-import 'package:private_agent/services/hermes_evolution_service.dart';
-import 'package:private_agent/services/inbox_service.dart';
-import 'package:private_agent/services/jarvis_service.dart';
-import 'package:private_agent/services/macro_recorder_service.dart';
-import 'package:private_agent/services/message_drafting_service.dart';
-import 'package:private_agent/services/notes_knowledge_service.dart';
-import 'package:private_agent/services/permission_manager_service.dart';
-import 'package:private_agent/services/air_gesture_service.dart';
-import 'package:private_agent/services/airspace_radar_service.dart';
-import 'package:private_agent/services/charging_telemetry_service.dart';
-import 'package:private_agent/services/code_black_service.dart';
-import 'package:private_agent/services/floating_copilot_service.dart';
-import 'package:private_agent/services/multi_task_service.dart';
-import 'package:private_agent/services/network_audit_service.dart';
-import 'package:private_agent/services/optical_solver_service.dart';
-import 'package:private_agent/services/personality_service.dart';
-import 'package:private_agent/services/phone_storage_service.dart';
-import 'package:private_agent/services/polyglot_diplomat_service.dart';
-import 'package:private_agent/services/proactive_agent_service.dart';
-import 'package:private_agent/services/routine_automation_service.dart';
-import 'package:private_agent/services/security_alert_service.dart';
-import 'package:private_agent/services/sentry_service.dart';
-import 'package:private_agent/services/settings_service.dart';
-import 'package:private_agent/services/smart_home_service.dart';
-import 'package:private_agent/services/sound_radar_service.dart';
-import 'package:private_agent/services/sports_service.dart';
-import 'package:private_agent/services/system_diagnostics_service.dart';
-import 'package:private_agent/services/todo_service.dart';
-import 'package:private_agent/services/vision_perception_service.dart';
-import 'package:private_agent/services/workflow_service.dart';
+import 'package:jarvis_android/models/task_step.dart';
+import 'package:jarvis_android/services/ai_service.dart';
+import 'package:jarvis_android/services/app_usage_service.dart';
+import 'package:jarvis_android/services/calendar_reminder_service.dart';
+import 'package:jarvis_android/services/commute_traffic_service.dart';
+import 'package:jarvis_android/services/conversational_memory_service.dart';
+import 'package:jarvis_android/services/email_triage_service.dart';
+import 'package:jarvis_android/services/finance_tracking_service.dart';
+import 'package:jarvis_android/services/form_filling_service.dart';
+import 'package:jarvis_android/services/hermes_evolution_service.dart';
+import 'package:jarvis_android/services/inbox_service.dart';
+import 'package:jarvis_android/services/jarvis_service.dart';
+import 'package:jarvis_android/services/macro_recorder_service.dart';
+import 'package:jarvis_android/services/message_drafting_service.dart';
+import 'package:jarvis_android/services/notes_knowledge_service.dart';
+import 'package:jarvis_android/services/permission_manager_service.dart';
+import 'package:jarvis_android/services/air_gesture_service.dart';
+import 'package:jarvis_android/services/airspace_radar_service.dart';
+import 'package:jarvis_android/services/charging_telemetry_service.dart';
+import 'package:jarvis_android/services/code_black_service.dart';
+import 'package:jarvis_android/services/floating_copilot_service.dart';
+import 'package:jarvis_android/services/multi_task_service.dart';
+import 'package:jarvis_android/services/network_audit_service.dart';
+import 'package:jarvis_android/services/optical_solver_service.dart';
+import 'package:jarvis_android/services/personality_service.dart';
+import 'package:jarvis_android/services/phone_storage_service.dart';
+import 'package:jarvis_android/services/polyglot_diplomat_service.dart';
+import 'package:jarvis_android/services/proactive_agent_service.dart';
+import 'package:jarvis_android/services/routine_automation_service.dart';
+import 'package:jarvis_android/services/security_alert_service.dart';
+import 'package:jarvis_android/services/sentry_service.dart';
+import 'package:jarvis_android/services/settings_service.dart';
+import 'package:jarvis_android/services/smart_home_service.dart';
+import 'package:jarvis_android/services/sound_radar_service.dart';
+import 'package:jarvis_android/services/sports_service.dart';
+import 'package:jarvis_android/services/system_diagnostics_service.dart';
+import 'package:jarvis_android/services/todo_service.dart';
+import 'package:jarvis_android/services/vision_perception_service.dart';
+import 'package:jarvis_android/services/workflow_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -692,23 +692,23 @@ void main() {
       // Pre-seed some facts in user knowledge
       await HermesEvolutionService.instance.updateUser('''
 # User Profile
-- Name: Tony Stark
+- Name: Mokshith Reddy
 - Email: tony@starkindustries.com
 - Phone: +1 415 555 0199
 - City: Malibu
 ''');
 
       final profile = formService.buildUserKnowledgeMap();
-      expect(profile['name'], 'Tony Stark');
+      expect(profile['name'], 'Mokshith Reddy');
       expect(profile['email'], 'tony@starkindustries.com');
       expect(profile['phone'], '+1 415 555 0199');
       expect(profile['city'], 'Malibu');
     });
 
-    test('Creator identity accurately declares Abuzar', () {
+    test('Creator identity accurately declares Mokshith Reddy', () {
       final personality = PersonalityService.instance;
       final answer = personality.getCreatorAnswer();
-      expect(answer, contains('Abuzar'));
+      expect(answer, contains('Mokshith Reddy'));
       expect(answer.toLowerCase(), isNot(contains('tony stark')));
     });
 
@@ -716,7 +716,7 @@ void main() {
       final personality = PersonalityService.instance;
       await HermesEvolutionService.instance.updateUser('''
 # User Profile
-- Name: Abuzar
+- Name: Mokshith Reddy
 - Identity: Primary Operator
 ''');
       await CalendarReminderService.instance.init();
@@ -735,7 +735,7 @@ void main() {
       await TodoService.instance.addTask('Prepare quarterly analysis', priority: TodoPriority.high);
 
       final greeting = await personality.generateExecutiveGreeting();
-      expect(greeting, contains('Abuzar'));
+      expect(greeting, contains('Mokshith Reddy'));
       expect(greeting.toLowerCase(), contains('meeting'));
       expect(greeting, contains('Prepare quarterly analysis'));
       expect(greeting, contains('to-do'));
