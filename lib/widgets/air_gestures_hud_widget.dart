@@ -36,7 +36,7 @@ class _AirGesturesHudWidgetState extends State<AirGesturesHudWidget>
 
   @override
   Widget build(BuildContext context) {
-    const cyan = Color(0xFF00E5FF);
+    const cyan = Color(0xFF1E6BFF);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
@@ -266,7 +266,7 @@ class _AirGesturesHudWidgetState extends State<AirGesturesHudWidget>
           Text(
             action,
             style: const TextStyle(
-              color: Color(0xFF00E5FF),
+              color: Color(0xFF1E6BFF),
               fontFamily: 'monospace',
               fontSize: 10,
             ),
@@ -279,8 +279,8 @@ class _AirGesturesHudWidgetState extends State<AirGesturesHudWidget>
   Widget _simButton(String label, VoidCallback onPressed) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF00E5FF),
-        side: BorderSide(color: const Color(0xFF00E5FF).withValues(alpha: 0.4)),
+        foregroundColor: const Color(0xFF1E6BFF),
+        side: BorderSide(color: const Color(0xFF1E6BFF).withValues(alpha: 0.4)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       ),
