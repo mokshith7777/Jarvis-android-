@@ -6,6 +6,7 @@ on:
     branches: [main, jarvis-pro-v2]
     paths:
       - "lib/**"
+      - "test/**"
       - "android/**"
       - "assets/**"
       - "pubspec.yaml"
