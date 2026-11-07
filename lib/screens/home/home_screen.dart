@@ -339,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: features.length,
-                  separatorBuilder: (_, __) => const Divider(color: Colors.white12, height: 1),
+                  separatorBuilder: (_, _) => const Divider(color: Colors.white12, height: 1),
                   itemBuilder: (ctx, index) {
                     final feature = features[index];
                     return ListTile(
