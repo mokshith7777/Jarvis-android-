@@ -8,18 +8,18 @@ import 'theme/app_theme.dart';
 import 'widgets/arc_reactor_charging_dialog.dart';
 
 /// Root application widget with theme + onboarding routing.
-class PrivateAgentApp extends StatefulWidget {
-  const PrivateAgentApp({super.key});
+class JarvisProApp extends StatefulWidget {
+  const JarvisProApp({super.key});
 
   /// Global key for overlay dialogs and system-level screen pushes.
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
   @override
-  State<PrivateAgentApp> createState() => _PrivateAgentAppState();
+  State<JarvisProApp> createState() => _JarvisProAppState();
 }
 
-class _PrivateAgentAppState extends State<PrivateAgentApp> {
+class _JarvisProAppState extends State<JarvisProApp> {
   final _settings = SettingsService.instance;
   bool _chargingHudModalOpen = false;
 
@@ -43,7 +43,7 @@ class _PrivateAgentAppState extends State<PrivateAgentApp> {
     if (ChargingTelemetryService.instance.showCinematicHud.value &&
         !_chargingHudModalOpen) {
       ChargingTelemetryService.instance.showCinematicHud.value = false;
-      final nav = PrivateAgentApp.navigatorKey.currentState;
+      final nav = JarvisProApp.navigatorKey.currentState;
       if (nav != null) {
         _chargingHudModalOpen = true;
         showDialog(
@@ -64,7 +64,7 @@ class _PrivateAgentAppState extends State<PrivateAgentApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: PrivateAgentApp.navigatorKey,
+      navigatorKey: JarvisProApp.navigatorKey,
       title: 'PrivateAgent',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
