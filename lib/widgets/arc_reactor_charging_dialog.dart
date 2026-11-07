@@ -36,8 +36,8 @@ class _ArcReactorChargingDialogState extends State<ArcReactorChargingDialog>
 
   @override
   Widget build(BuildContext context) {
-    const cyan = Color(0xFF00E5FF);
-    const gold = Color(0xFFFFD54F);
+    const cyan = Color(0xFF1E6BFF);
+    const gold = Color(0xFFFF6D00);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
@@ -269,11 +269,11 @@ class _ArcReactorChargingDialogState extends State<ArcReactorChargingDialog>
       decoration: BoxDecoration(
         color: const Color(0xFF081928),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF00E5FF).withValues(alpha: 0.25)),
+        border: Border.all(color: const Color(0xFF1E6BFF).withValues(alpha: 0.25)),
       ),
       child: Column(
         children: [
-          Icon(icon, color: const Color(0xFF00E5FF), size: 16),
+          Icon(icon, color: const Color(0xFF1E6BFF), size: 16),
           const SizedBox(height: 4),
           Text(
             value,
