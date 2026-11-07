@@ -33,8 +33,8 @@ class _OpticalSolverDialogState extends State<OpticalSolverDialog>
 
   @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFFFB300);
-    const cyan = Color(0xFF00E5FF);
+    const gold = Color(0xFFFF4E00);
+    const cyan = Color(0xFF1E6BFF);
 
     return BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
@@ -333,10 +333,10 @@ class _OpticalSolverDialogState extends State<OpticalSolverDialog>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFFB300) : Colors.white.withValues(alpha: 0.06),
+          color: isSelected ? const Color(0xFFFF4E00) : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFFFFB300) : Colors.white24,
+            color: isSelected ? const Color(0xFFFF4E00) : Colors.white24,
           ),
         ),
         child: Text(
