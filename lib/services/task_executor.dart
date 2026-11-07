@@ -21,7 +21,7 @@ import 'voice_service.dart';
 
 enum ExecutorState { idle, running, paused }
 
-/// The heart of PrivateAgent: the observe -> think -> act feedback loop.
+/// The heart of JARVIS PRO: the observe -> think -> act feedback loop.
 ///
 /// 1. Verifies the accessibility service is enabled.
 /// 2. Tries skill-memory replay (macro) before spending LLM tokens.
@@ -297,7 +297,7 @@ class TaskExecutor extends ChangeNotifier {
       if (!await _automation.isServiceEnabled()) {
         _log(
           ChatMessage.error(
-            'Accessibility service is OFF. Enable "PrivateAgent Screen '
+            'Accessibility service is OFF. Enable "JARVIS PRO Screen '
             'Control" in system settings, then retry.',
           ),
         );
@@ -633,7 +633,7 @@ class TaskExecutor extends ChangeNotifier {
       await VoiceService.instance.speak(summary);
     }
     await SystemControlService.instance.notify(
-      'PrivateAgent — ${status.name}',
+      'JARVIS PRO — ${status.name}',
       '$goal\n$summary',
     );
 
