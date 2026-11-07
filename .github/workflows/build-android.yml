@@ -75,4 +75,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          gh release create v2.0.0 dist/JARVIS-PRO-v2.0.0.apk#JARVIS-PRO-v2.0.0.apk --title "JARVIS PRO v2.0.0" --notes "JARVIS PRO v2.0.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 200. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. Configure a private release signing key before Play Store distribution." --latest
+          NOTES="JARVIS PRO v2.0.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 200. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
+          if gh release view v2.0.0 >/dev/null 2>&1; then
+            gh release edit v2.0.0 --title "JARVIS PRO v2.0.0" --notes "$NOTES" --latest
+          else
+            gh release create v2.0.0 --title "JARVIS PRO v2.0.0" --notes "$NOTES" --latest
+          fi
+          gh release upload v2.0.0 dist/JARVIS-PRO-v2.0.0.apk --clobber
