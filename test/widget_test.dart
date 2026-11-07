@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:private_agent/app.dart';
-import 'package:private_agent/models/skill.dart';
-import 'package:private_agent/models/task_step.dart';
-import 'package:private_agent/screens/settings/settings_screen.dart';
-import 'package:private_agent/services/jarvis_tools_service.dart';
-import 'package:private_agent/services/settings_service.dart';
-import 'package:private_agent/services/voice_service.dart';
-import 'package:private_agent/services/workflow_service.dart';
+import 'package:jarvis_android/app.dart';
+import 'package:jarvis_android/models/skill.dart';
+import 'package:jarvis_android/models/task_step.dart';
+import 'package:jarvis_android/screens/settings/settings_screen.dart';
+import 'package:jarvis_android/services/jarvis_tools_service.dart';
+import 'package:jarvis_android/services/settings_service.dart';
+import 'package:jarvis_android/services/voice_service.dart';
+import 'package:jarvis_android/services/workflow_service.dart';
 
 void main() {
   group('TaskStep parsing', () {
@@ -111,7 +111,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await SettingsService.instance.init();
 
-    await tester.pumpWidget(const PrivateAgentApp());
+    await tester.pumpWidget(const JarvisProApp());
     await tester.pumpAndSettle();
 
     expect(find.text('Meet J.A.R.V.I.S.'), findsOneWidget);
