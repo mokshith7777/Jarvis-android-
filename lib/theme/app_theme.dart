@@ -18,7 +18,13 @@ class AppTheme {
   static const slate900 = Color(0xFF050B18);
   static const slate950 = Color(0xFF020612);
 
-  static const neonBlue = Color(0xFF1E6BFF);\n  static const neonBlueBright = Color(0xFF3898FF);\n  static const crimson = Color(0xFFFF0844);\n  static const solarOrange = Color(0xFFFF6D00);\n  static const solarGold = Color(0xFFFFAE00);\n\n  // Brand accents
+  static const neonBlue = Color(0xFF1E6BFF);
+  static const neonBlueBright = Color(0xFF3898FF);
+  static const crimson = Color(0xFFFF0844);
+  static const solarOrange = Color(0xFFFF6D00);
+  static const solarGold = Color(0xFFFFAE00);
+
+  // Brand accents
   static const indigo = Color(0xFF002BFF);
   static const indigoLight = Color(0xFF1E6BFF);
   static const success = Color(0xFF22C55E);
