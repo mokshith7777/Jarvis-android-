@@ -233,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF00E5FF).withValues(alpha: 0.08),
+                    const Color(0xFF1E6BFF).withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                 ),
@@ -255,7 +255,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _sectionHeader(
                   icon: Icons.shield_rounded,
                   title: 'Autonomous J.A.R.V.I.S. Core',
-                  color: const Color(0xFF00E5FF),
+                  color: const Color(0xFF1E6BFF),
                 ),
                 _jarvisCard(),
                 const SizedBox(height: 22),
@@ -463,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GlassCard(
       borderRadius: 22,
       padding: EdgeInsets.zero,
-      borderColor: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+      borderColor: const Color(0xFF1E6BFF).withValues(alpha: 0.35),
       child: InkWell(
         borderRadius: BorderRadius.circular(22),
         onTap: () {
@@ -486,19 +486,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: BoxDecoration(
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFF00E5FF).withValues(alpha: 0.35),
-                          const Color(0xFF00E5FF).withValues(alpha: 0.08),
+                          const Color(0xFF1E6BFF).withValues(alpha: 0.35),
+                          const Color(0xFF1E6BFF).withValues(alpha: 0.08),
                         ],
                       ),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFF00E5FF).withValues(alpha: 0.7),
+                        color: const Color(0xFF1E6BFF).withValues(alpha: 0.7),
                         width: 1.5,
                       ),
                     ),
                     child: const Icon(
                       Icons.shield_outlined,
-                      color: Color(0xFF00E5FF),
+                      color: Color(0xFF1E6BFF),
                       size: 24,
                     ),
                   ),
@@ -526,12 +526,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isAlwaysOn
-                                    ? const Color(0xFF00E5FF).withValues(alpha: 0.18)
+                                    ? const Color(0xFF1E6BFF).withValues(alpha: 0.18)
                                     : theme.colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
                                   color: isAlwaysOn
-                                      ? const Color(0xFF00E5FF).withValues(alpha: 0.6)
+                                      ? const Color(0xFF1E6BFF).withValues(alpha: 0.6)
                                       : theme.colorScheme.outline.withValues(alpha: 0.3),
                                   width: 0.8,
                                 ),
@@ -543,7 +543,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.8,
                                   color: isAlwaysOn
-                                      ? const Color(0xFF00E5FF)
+                                      ? const Color(0xFF1E6BFF)
                                       : theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
@@ -565,7 +565,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Icon(
                     Icons.arrow_forward_ios_rounded,
                     size: 16,
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                   ),
                 ],
               ),
@@ -575,9 +575,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 runSpacing: 6,
                 children: [
                   GlassPill(
-                    icon: const Icon(Icons.mic_rounded, size: 13, color: Color(0xFF00E5FF)),
+                    icon: const Icon(Icons.mic_rounded, size: 13, color: Color(0xFF1E6BFF)),
                     label: isAlwaysOn ? 'Hands-Free Receptors' : 'Tap to Talk',
-                    color: const Color(0xFF00E5FF),
+                    color: const Color(0xFF1E6BFF),
                   ),
                   GlassPill(
                     icon: const Icon(Icons.record_voice_over_rounded, size: 13, color: Color(0xFFFFD700)),
@@ -679,9 +679,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: Colors.amber,
                   ),
                   GlassPill(
-                    icon: Icon(Icons.mic_rounded, size: 13, color: Color(0xFF00E5FF)),
+                    icon: Icon(Icons.mic_rounded, size: 13, color: Color(0xFF1E6BFF)),
                     label: 'Mic Receptor',
-                    color: Color(0xFF00E5FF),
+                    color: Color(0xFF1E6BFF),
                   ),
                   GlassPill(
                     icon: Icon(Icons.accessibility_new_rounded, size: 13, color: Color(0xFF818CF8)),
