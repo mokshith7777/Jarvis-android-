@@ -14,13 +14,13 @@ class AppTheme {
   static const slate500 = Color(0xFF64748B);
   static const slate600 = Color(0xFF475569);
   static const slate700 = Color(0xFF334155);
-  static const slate800 = Color(0xFF1E293B);
-  static const slate900 = Color(0xFF0F172A);
-  static const slate950 = Color(0xFF020617);
+  static const slate800 = Color(0xFF0B1528);
+  static const slate900 = Color(0xFF050B18);
+  static const slate950 = Color(0xFF020612);
 
-  // Brand accents
-  static const indigo = Color(0xFF6366F1);
-  static const indigoLight = Color(0xFF818CF8);
+  static const neonBlue = Color(0xFF1E6BFF);\n  static const neonBlueBright = Color(0xFF3898FF);\n  static const crimson = Color(0xFFFF0844);\n  static const solarOrange = Color(0xFFFF6D00);\n  static const solarGold = Color(0xFFFFAE00);\n\n  // Brand accents
+  static const indigo = Color(0xFF002BFF);
+  static const indigoLight = Color(0xFF1E6BFF);
   static const success = Color(0xFF22C55E);
   static const danger = Color(0xFFEF4444);
   static const warning = Color(0xFFF59E0B);
