@@ -46,7 +46,7 @@ class CodeBlackService extends ChangeNotifier {
     notifyListeners();
     HapticFeedback.heavyImpact();
 
-    final navState = PrivateAgentApp.navigatorKey.currentState;
+    final navState = JarvisProApp.navigatorKey.currentState;
     if (navState != null) {
       unawaited(navState.push(
         MaterialPageRoute(builder: (_) => const CodeBlackScreen()),
