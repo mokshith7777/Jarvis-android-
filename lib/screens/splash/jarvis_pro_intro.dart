@@ -217,7 +217,9 @@ class _ReactorPainter extends CustomPainter {
     }
 
     canvas.save();
-    canvas.rotate(progress * math.pi * 2, center);
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(progress * math.pi * 2);
+    canvas.translate(-center.dx, -center.dy);
     ring(radius, red, 5, 0);
     ring(radius * .91, gold, 2.5, 0, dashed: true);
     ring(radius * .79, const Color(0xFF294D7D), 7, 0);
@@ -225,7 +227,9 @@ class _ReactorPainter extends CustomPainter {
     canvas.restore();
 
     canvas.save();
-    canvas.rotate(-progress * math.pi * 3.2, center);
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(-progress * math.pi * 3.2);
+    canvas.translate(-center.dx, -center.dy);
     ring(radius * .59, blue, 4, 0);
     ring(radius * .49, cyan, 2, 0, dashed: true);
     canvas.restore();
