@@ -14,6 +14,11 @@
 - Establish an obsidian base with neon-blue and crimson/solar-orange accents.
 - Update HUD, overlay, settings, and feature dialog accents.
 
+### Brand launch and documentation
+- Add a five-second portrait-oriented animated reactor intro before the main app.
+- Refresh the adaptive launcher icon artwork with obsidian, electric-blue, crimson, and gold reactor rings.
+- Expand README with feature explanations, APK installation, Android 13+ permission setup, Accessibility guidance, troubleshooting, source builds, and security notes.
+
 ### Build pipeline
 - Target version 2.0.0 / version code 200.
 - Run Flutter dependency resolution, static analysis, tests, APK build, package identity verification, and APK signature verification in GitHub Actions.
