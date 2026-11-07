@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:private_agent/services/multi_task_service.dart';
+import 'package:jarvis_android/services/multi_task_service.dart';
 
 void main() {
   group('parseReminderTime', () {
