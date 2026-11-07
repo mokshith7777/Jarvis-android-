@@ -24,6 +24,17 @@ class AppTheme {
   static const solarOrange = Color(0xFFFF6D00);
   static const solarGold = Color(0xFFFFAE00);
 
+  static const LinearGradient neonBlueGradient = LinearGradient(
+    colors: [Color(0xFF002BFF), Color(0xFF1E6BFF), Color(0xFF3898FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  static const LinearGradient ironManRedGoldGradient = LinearGradient(
+    colors: [Color(0xFFFF0844), Color(0xFFFF4E00), Color(0xFFFFAE00)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   // Brand accents
   static const indigo = Color(0xFF002BFF);
   static const indigoLight = Color(0xFF1E6BFF);
