@@ -1,9 +1,9 @@
-name: J.A.R.V.I.S. Android Release
+name: JARVIS PRO Android Release
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, jarvis-pro-v2]
     paths:
       - "lib/**"
       - "android/**"
@@ -16,45 +16,30 @@ permissions:
   contents: write
 
 concurrency:
-  group: jarvis-android-release-${{ github.ref }}
+  group: jarvis-pro-v2-release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
-      - name: Report build toolchain
-        run: |
-          flutter --version
-          java -version
-
       - name: Resolve dependencies
         run: flutter pub get
-
       - name: Analyze Dart source
         run: flutter analyze
-
       - name: Run tests
         run: flutter test
-
       - name: Build release APK
         run: flutter build apk --release
-
       - name: Verify APK identity and signature
         id: verify
         shell: bash
@@ -62,65 +47,31 @@ jobs:
           set -euo pipefail
           APK="build/app/outputs/flutter-apk/app-release.apk"
           test -s "$APK"
-
           BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
           AAPT="$BUILD_TOOLS/aapt"
           APKSIGNER="$BUILD_TOOLS/apksigner"
-          test -x "$AAPT"
-          test -x "$APKSIGNER"
-
           APP_ID="$("$AAPT" dump badging "$APK" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p" | head -n 1)"
           VERSION_NAME="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionName='\\([^']*\\)'.*/\\1/p" | head -n 1)"
           VERSION_CODE="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionCode='\\([^']*\\)'.*/\\1/p" | head -n 1)"
-
-          test "$APP_ID" = "com.mokshith.jarvis"
-          test "$VERSION_NAME" = "1.0.3"
-          test "$VERSION_CODE" = "103"
-
+          test "$APP_ID" = "com.mokshith.jarvis.ai"
+          test "$VERSION_NAME" = "2.0.0"
+          test "$VERSION_CODE" = "200"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
-          echo "app_id=$APP_ID" >> "$GITHUB_OUTPUT"
-          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
-          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
-
           mkdir -p dist
-          cp "$APK" "dist/JARVIS-Android-v$VERSION_NAME.apk"
-          echo "Verified package: $APP_ID"
-          echo "Verified version: $VERSION_NAME ($VERSION_CODE)"
+          cp "$APK" dist/JARVIS-PRO-v2.0.0.apk
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "APK SHA-256: $SHA256"
-
       - name: Upload verified APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jarvis-android-v1.0.3-verified-apk
-          path: dist/JARVIS-Android-v1.0.3.apk
+          name: jarvis-pro-v2.0.0-verified-apk
+          path: dist/JARVIS-PRO-v2.0.0.apk
           if-no-files-found: error
           retention-days: 30
-
       - name: Publish verified APK to GitHub Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ steps.verify.outputs.version_name }}"
-          TAG="v$VERSION"
-          APK="dist/JARVIS-Android-v$VERSION.apk"
-          NOTES="J.A.R.V.I.S. Android v$VERSION
-
-          - New JARVIS arc-reactor launcher identity
-          - Updated Android application label and package ID: com.mokshith.jarvis
-          - Flutter analysis and tests completed before packaging
-          - APK package identity and APK signature verified by CI
-
-          SHA-256: ${{ steps.verify.outputs.sha256 }}
-
-          Signing note: this CI build uses the repository's configured Android debug signing key. It is suitable for verification and direct testing, not as a Play Store production signing identity."
-
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK#J.A.R.V.I.S. Android APK" --clobber
-            gh release edit "$TAG" --title "J.A.R.V.I.S. Android v$VERSION" --notes "$NOTES" --latest
-          else
-            gh release create "$TAG" "$APK#J.A.R.V.I.S. Android APK" --title "J.A.R.V.I.S. Android v$VERSION" --notes "$NOTES" --latest
-          fi
+          gh release create v2.0.0 dist/JARVIS-PRO-v2.0.0.apk#JARVIS-PRO-v2.0.0.apk --title "JARVIS PRO v2.0.0" --notes "JARVIS PRO v2.0.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 200. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. Configure a private release signing key before Play Store distribution." --latest
