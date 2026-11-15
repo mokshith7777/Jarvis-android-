@@ -338,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Model Provider Preset',
+            'API Vault · Provider Configuration',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
@@ -365,7 +365,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           GlassTextField(
             controller: _apiKeyController,
-            labelText: 'API key',
+            labelText: 'Provider API key (stored in Android secure storage)',
             obscureText: _obscureKey,
             prefixIcon: const Icon(Icons.vpn_key_outlined, size: 20),
             suffixIcon: IconButton(
