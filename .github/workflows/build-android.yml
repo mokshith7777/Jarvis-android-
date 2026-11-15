@@ -75,7 +75,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          NOTES="JARVIS PRO v2.1.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 210. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
+          NOTES="JARVIS PRO v2.1.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 210. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. v2.1.0 includes the secure local credential vault, Groq provider preset, explicit Telegram chat authorization, camera permission flow, honest proximity-sensor status, and removal of silent Sentry camera capture. MediaPipe Hands tracking, MediaProjection screen streaming, and a dedicated persistent Telegram foreground service are not part of this build. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
           if gh release view v2.1.0 >/dev/null 2>&1; then
             gh release edit v2.1.0 --title "JARVIS PRO v2.1.0" --notes "$NOTES" --latest
           else
