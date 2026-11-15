@@ -13,8 +13,8 @@ import 'settings_service.dart';
 /// messages from authorized chats are executed as agent tasks; status
 /// updates and screenshots are sent back to the chat.
 ///
-/// Authorization model: if [SettingsService.telegramAllowedChats] is empty,
-/// the first chat that writes to the bot becomes the remembered owner.
+/// Authorization is opt-in: only an explicitly configured owner chat ID or
+/// an explicitly listed allowed chat ID may issue commands.
 class TelegramService extends ChangeNotifier {
   TelegramService._();
   static final TelegramService instance = TelegramService._();
@@ -103,18 +103,18 @@ class TelegramService extends ChangeNotifier {
     final allowed = settings.telegramAllowedChats;
     final owner = settings.telegramOwnerChatId;
 
-    // First contact becomes the owner when no allow-list is configured.
-    if (allowed.isEmpty && owner.isEmpty) {
-      await settings.setTelegramOwnerChatId(chatId);
-      await sendMessage(chatId,
-          '👋 JARVIS PRO paired with this chat. Send me any task, e.g.\n'
-          '"Open YouTube and search for lofi music".\n\n'
-          'Commands: /status /screenshot /cancel');
+    // Never trust the first person who discovers the bot. Pairing must be
+    // completed locally by adding the Telegram chat ID in JARVIS Settings.
+    final isAuthorized =
+        (owner.isNotEmpty && chatId == owner) || allowed.contains(chatId);
+    if (!isAuthorized) {
+      await sendMessage(
+        chatId,
+        'This JARVIS device has not authorized this Telegram chat. '
+        'Add this chat ID in the device Settings to pair it.',
+      );
       return;
     }
-    final isAuthorized =
-        allowed.contains(chatId) || (allowed.isEmpty && chatId == owner);
-    if (!isAuthorized) return;
 
     onCommand?.call(chatId, text.trim());
   }
