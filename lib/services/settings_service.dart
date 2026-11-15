@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Interaction mode of the home screen.
 ///
@@ -27,11 +28,31 @@ class SettingsService extends ChangeNotifier {
   static final SettingsService instance = SettingsService._();
 
   SharedPreferences? _prefs;
+  static const FlutterSecureStorage _vault = FlutterSecureStorage();
+  String _apiKeyCache = '';
+  String _telegramTokenCache = '';
 
   bool get isReady => _prefs != null;
 
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
+    // Migrate credentials from legacy preferences into Android Keystore-backed storage.
+    _apiKeyCache = await _vault.read(key: 'ai_api_key') ?? '';
+    if (_apiKeyCache.isEmpty) {
+      _apiKeyCache = _prefs?.getString('ai_api_key') ?? '';
+      if (_apiKeyCache.isNotEmpty) {
+        await _vault.write(key: 'ai_api_key', value: _apiKeyCache);
+        await _prefs?.remove('ai_api_key');
+      }
+    }
+    _telegramTokenCache = await _vault.read(key: 'telegram_token') ?? '';
+    if (_telegramTokenCache.isEmpty) {
+      _telegramTokenCache = _prefs?.getString('telegram_token') ?? '';
+      if (_telegramTokenCache.isNotEmpty) {
+        await _vault.write(key: 'telegram_token', value: _telegramTokenCache);
+        await _prefs?.remove('telegram_token');
+      }
+    }
     // Ensure system prompt is enabled so models always receive the agent action grammar
     if (_prefs?.getBool('ai_use_system_prompt') != true) {
       await _prefs?.setBool('ai_use_system_prompt', true);
@@ -70,6 +91,11 @@ class SettingsService extends ChangeNotifier {
       baseUrl: 'https://integrate.api.nvidia.com/v1',
       model: 'meta/llama-3.3-70b-instruct',
     ),
+    'groq': (
+      label: 'Groq',
+      baseUrl: 'https://api.groq.com/openai/v1',
+      model: 'llama-3.3-70b-versatile',
+    ),
     'ollama': (
       label: 'Ollama (local)',
       baseUrl: 'http://127.0.0.1:11434/v1',
@@ -98,9 +124,15 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  String get apiKey => _prefs?.getString('ai_api_key') ?? '';
+  String get apiKey => _apiKeyCache;
   Future<void> setApiKey(String value) async {
-    await _prefs?.setString('ai_api_key', value.trim());
+    _apiKeyCache = value.trim();
+    if (_apiKeyCache.isEmpty) {
+      await _vault.delete(key: 'ai_api_key');
+    } else {
+      await _vault.write(key: 'ai_api_key', value: _apiKeyCache);
+    }
+    await _prefs?.remove('ai_api_key');
     notifyListeners();
   }
 
@@ -166,14 +198,20 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  String get telegramToken => _prefs?.getString('telegram_token') ?? '';
+  String get telegramToken => _telegramTokenCache;
   Future<void> setTelegramToken(String value) async {
-    await _prefs?.setString('telegram_token', value.trim());
+    _telegramTokenCache = value.trim();
+    if (_telegramTokenCache.isEmpty) {
+      await _vault.delete(key: 'telegram_token');
+    } else {
+      await _vault.write(key: 'telegram_token', value: _telegramTokenCache);
+    }
+    await _prefs?.remove('telegram_token');
     notifyListeners();
   }
 
-  /// Chat ids allowed to control the device. Empty = the first chat that
-  /// messages the bot becomes the owner (and is remembered).
+  /// Chat ids explicitly allowed to control the device. An empty list does
+  /// not authorize anyone; pair an owner or add an allowed chat ID yourself.
   List<String> get telegramAllowedChats =>
       _prefs?.getStringList('telegram_allowed_chats') ?? const [];
   Future<void> setTelegramAllowedChats(List<String> value) async {
