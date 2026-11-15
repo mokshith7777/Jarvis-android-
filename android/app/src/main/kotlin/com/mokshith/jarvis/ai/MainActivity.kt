@@ -9,9 +9,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.BatteryManager
@@ -176,95 +173,17 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun triggerSentryAlarm(deltaMagnitude: Float) {
+        // Motion alerts are telemetry-only. Never activate the camera silently.
         mainHandler.post {
-            captureFrontCameraPhotoSilent { photoBase64, photoPath ->
-                val payload = mapOf(
-                    "type" to "sentry_breach",
-                    "timestamp" to System.currentTimeMillis(),
-                    "delta" to deltaMagnitude.toDouble(),
-                    "base64" to (photoBase64 ?: ""),
-                    "path" to (photoPath ?: "")
-                )
-                accessibilityChannel?.invokeMethod("onSentryMovementDetected", payload)
-            }
+            val payload = mapOf(
+                "type" to "sentry_breach",
+                "timestamp" to System.currentTimeMillis(),
+                "delta" to deltaMagnitude.toDouble(),
+                "base64" to "",
+                "path" to ""
+            )
+            accessibilityChannel?.invokeMethod("onSentryMovementDetected", payload)
         }
-    }
-
-    private fun captureFrontCameraPhotoSilent(onCaptured: (String?, String?) -> Unit) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                val cm = getSystemService(Context.CAMERA_SERVICE) as? CameraManager
-                val frontCameraId = cm?.cameraIdList?.firstOrNull { id ->
-                    val chars = cm.getCameraCharacteristics(id)
-                    chars.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT
-                } ?: cm?.cameraIdList?.firstOrNull()
-
-                if (frontCameraId != null && cm != null) {
-                    val photoDir = File(cacheDir, "sentry_snapshots").apply { mkdirs() }
-                    val photoFile = File(photoDir, "sentry_intruder_${System.currentTimeMillis()}.jpg")
-
-                    val reader = android.media.ImageReader.newInstance(640, 480, android.graphics.ImageFormat.JPEG, 2)
-                    reader.setOnImageAvailableListener({ ir ->
-                        try {
-                            val img = ir.acquireLatestImage()
-                            if (img != null) {
-                                val buffer = img.planes[0].buffer
-                                val bytes = ByteArray(buffer.remaining())
-                                buffer.get(bytes)
-                                img.close()
-                                photoFile.writeBytes(bytes)
-                                val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-                                onCaptured(b64, photoFile.absolutePath)
-                                return@setOnImageAvailableListener
-                            }
-                        } catch (_: Exception) {}
-                        onCaptured(null, null)
-                    }, mainHandler)
-
-                    cm.openCamera(frontCameraId, object : CameraDevice.StateCallback() {
-                        override fun onOpened(camera: CameraDevice) {
-                            try {
-                                val captureBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
-                                captureBuilder.addTarget(reader.surface)
-                                camera.createCaptureSession(listOf(reader.surface), object : android.hardware.camera2.CameraCaptureSession.StateCallback() {
-                                    override fun onConfigured(session: android.hardware.camera2.CameraCaptureSession) {
-                                        try {
-                                            session.capture(captureBuilder.build(), object : android.hardware.camera2.CameraCaptureSession.CaptureCallback() {
-                                                override fun onCaptureCompleted(s: android.hardware.camera2.CameraCaptureSession, request: android.hardware.camera2.CaptureRequest, total: android.hardware.camera2.TotalCaptureResult) {
-                                                    mainHandler.postDelayed({
-                                                        try { camera.close() } catch (_: Exception) {}
-                                                    }, 500L)
-                                                }
-                                            }, mainHandler)
-                                        } catch (_: Exception) {
-                                            try { camera.close() } catch (_: Exception) {}
-                                            onCaptured(null, null)
-                                        }
-                                    }
-                                    override fun onConfigureFailed(session: android.hardware.camera2.CameraCaptureSession) {
-                                        try { camera.close() } catch (_: Exception) {}
-                                        onCaptured(null, null)
-                                    }
-                                }, mainHandler)
-                            } catch (e: Exception) {
-                                try { camera.close() } catch (_: Exception) {}
-                                onCaptured(null, null)
-                            }
-                        }
-                        override fun onDisconnected(camera: CameraDevice) {
-                            try { camera.close() } catch (_: Exception) {}
-                            onCaptured(null, null)
-                        }
-                        override fun onError(camera: CameraDevice, error: Int) {
-                            try { camera.close() } catch (_: Exception) {}
-                            onCaptured(null, null)
-                        }
-                    }, mainHandler)
-                    return
-                }
-            }
-        } catch (_: Exception) {}
-        onCaptured(null, null)
     }
 
     // -----------------------------------------------------------------
@@ -531,12 +450,14 @@ class MainActivity : FlutterActivity() {
             // For all timeouts, silence, client hiccups, busy signals, audio glitches:
             // Destroy and re-arm cleanly so listening never stops!
             safeCancelAndDestroy()
+            // Avoid tight recognizer teardown/restart loops. Rapid restart cycles
+            // can repeatedly trigger Android's speech-service start/stop earcon.
             val delay = when (error) {
                 SpeechRecognizer.ERROR_NO_MATCH,
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> 50L
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> 700L
                 SpeechRecognizer.ERROR_RECOGNIZER_BUSY,
-                SpeechRecognizer.ERROR_CLIENT -> 120L
-                else -> 250L
+                SpeechRecognizer.ERROR_CLIENT -> 1000L
+                else -> 1200L
             }
             scheduleRestart(delay)
         }
