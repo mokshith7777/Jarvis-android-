@@ -6,9 +6,8 @@ import 'system_control_service.dart';
 
 /// 🖐️ Iron Man Zero-Touch Air Gestures Service
 ///
-/// Enables touch-free phone control using the device's optical proximity
-/// and front sensory matrix. Allows mid-air hand waves, double-waves, and
-/// palm hovers to control media playback, wake J.A.R.V.I.S., and trigger actions.
+/// Uses the Android proximity sensor where supported. Proximity sensing is
+/// not equivalent to camera-based hand tracking and is device-dependent.
 class AirGestureService extends ChangeNotifier {
   AirGestureService._();
 
@@ -20,7 +19,7 @@ class AirGestureService extends ChangeNotifier {
   DateTime? _lastGestureTime;
   int _gestureCount = 0;
   String _statusMessage = 'Air Gestures offline';
-  bool _voiceFeedback = true;
+  bool _voiceFeedback = false;
 
   final ValueNotifier<String?> activeGestureBanner = ValueNotifier<String?>(null);
   Timer? _bannerTimer;
@@ -58,14 +57,14 @@ class AirGestureService extends ChangeNotifier {
     }
   }
 
-  /// Arms optical proximity sensor for mid-air gesture monitoring.
+  /// Arms the device proximity sensor. This is not camera-based hand tracking.
   Future<bool> start() async {
     try {
       final res = await _channel.invokeMethod<bool>('startAirGestures');
-      _isEnabled = res ?? true;
+      _isEnabled = res == true;
       _statusMessage = _isEnabled
           ? 'Optical proximity matrix active. Wave or hover hand to control.'
-          : 'Proximity sensor unavailable. Simulated gestures ready.';
+          : 'No supported proximity sensor detected. Demo gestures only.';
       notifyListeners();
       if (_voiceFeedback) {
         unawaited(EdgeTtsService.instance.speak(
@@ -74,8 +73,8 @@ class AirGestureService extends ChangeNotifier {
       }
       return _isEnabled;
     } catch (_) {
-      _isEnabled = true; // allow software simulation
-      _statusMessage = 'Air Gestures active in software mode.';
+      _isEnabled = false;
+      _statusMessage = 'Native gesture sensor unavailable. Demo gestures only.';
       notifyListeners();
       return true;
     }
