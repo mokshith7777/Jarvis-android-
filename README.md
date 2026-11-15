@@ -31,6 +31,18 @@
 
 ---
 
+## Version 2.1.0 delivery scope
+
+This release adds:
+- **API Vault:** provider credentials migrate to Android secure storage; NVIDIA NIM, Groq, and Gemini provider presets are available.
+- **Telegram authorization:** remote-control chat IDs must be configured by the device owner. Unknown chats cannot automatically claim ownership.
+- **Camera permission:** visual capture requests camera permission before opening the system camera UI.
+- **Gesture status:** the app no longer reports proximity-sensor fallback as active camera hand tracking. Voice feedback is off by default.
+- **Microphone restart stability:** continuous recognition retries are throttled to avoid rapid recognizer restart loops.
+- **Privacy correction:** Sentry motion alerts no longer take silent camera photographs.
+
+**Not included in v2.1.0:** MediaPipe Hands camera-based tracking, Android MediaProjection screen streaming, and a dedicated persistent foreground Telegram worker. Telegram polling is still tied to the app process and Android may stop it. These features must not be considered available in this release.
+
 ## What JARVIS PRO does
 
 JARVIS PRO combines a conversational assistant, voice input/output, task execution, screen-aware Android workflows, a floating control panel, and a collection of focused utilities. The app is designed around explicit user control: Android permissions are requested by the feature that needs them, and sensitive actions should remain visible and interruptible.
