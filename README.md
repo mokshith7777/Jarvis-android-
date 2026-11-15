@@ -6,7 +6,7 @@
 - **Application:** JARVIS PRO
 - **Android application ID:** `com.mokshith.jarvis.ai`
 - **Flutter package:** `jarvis_android`
-- **Current release:** `2.0.0 (200)`
+- **Current release:** `2.1.0 (210)`
 - **Primary platform:** Android
 
 > JARVIS PRO is an experimental personal assistant. It is not a system-level replacement for Android, and it cannot override Android security, permission, battery, or background-execution policies.
@@ -102,7 +102,7 @@ Availability and results depend on the relevant Android capabilities and permiss
 The charging HUD displays supported device charging and battery metrics when the operating system exposes them. Values may be unavailable or estimated on some devices.
 
 ### 8. Telegram integration
-The project includes an optional Telegram task interface. It requires the user to configure the bot and chat settings. Keep bot tokens private, restrict who can message the bot, and never commit credentials to the repository.
+The project includes an optional Telegram long-polling task interface. Only chat IDs explicitly configured in JARVIS Settings are authorized; unknown chats cannot claim device ownership. Polling runs while the app process and service remain active. Android battery management and process lifecycle restrictions mean this is not a guaranteed 24/7 remote-control service.
 
 ---
 
@@ -126,8 +126,8 @@ The project includes an optional Telegram task interface. It requires the user t
 
 ### Download
 
-1. Open the [JARVIS PRO v2.0.0 GitHub Release](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v2.0.0).
-2. In **Assets**, download **JARVIS-PRO-v2.0.0.apk**.
+1. Open the [JARVIS PRO v2.1.0 GitHub Release](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v2.1.0).
+2. In **Assets**, download **JARVIS-PRO-v2.1.0.apk**.
 3. Wait for the download to finish. Do not rename the file while installing.
 4. Open the downloaded APK from the Android Downloads app or your file manager.
 5. If Android asks which app may install this APK, choose the browser or file manager you used and enable **Allow from this source** for that source only.
@@ -146,13 +146,13 @@ JARVIS PRO is distributed as an APK outside Google Play. Google Play Protect may
 - If Play Protect blocks or warns about the file, read the warning and make your own informed decision. Do not follow instructions that tell you to disable device security globally.
 - This project does not bypass Play Protect, Android package verification, or device security checks. No README can guarantee a warning-free installation.
 
-**Release SHA-256 (v2.0.0):**
+**Release SHA-256 (v2.1.0):**
 
 ```
-c56ebad10702d0d1590a108a3fca9ccd388d9c9f7c7697fd8264462ce854e69b
+SHA-256 is published in the GitHub Release notes and verified by the Actions workflow for each build.
 ```
 
-On a computer, verify with `sha256sum JARVIS-PRO-v2.0.0.apk`. On Android, use a trusted checksum utility if you want to verify the downloaded file before installation.
+On a computer, verify with `sha256sum JARVIS-PRO-v2.1.0.apk`. On Android, use a trusted checksum utility if you want to verify the downloaded file before installation.
 
 ---
 
@@ -165,7 +165,9 @@ On a computer, verify with `sha256sum JARVIS-PRO-v2.0.0.apk`. On Android, use a 
 5. Grant microphone permission only if you want voice input.
 6. Enable Accessibility only if you intend to use supported screen automation.
 7. Enable overlay access only if you want the floating assistant bubble.
-8. Configure optional integrations, such as Telegram, only after reading their setup and privacy requirements.
+8. Configure optional integrations, such as Telegram, only after reading their setup and privacy requirements. Add your Telegram chat ID explicitly before remote commands will be accepted.
+9. Add provider credentials in **Settings → API Vault**. NVIDIA NIM, Groq, and Gemini presets are available; model availability and free-tier quotas are controlled by each provider.
+10. Camera capture requests camera permission before opening the system camera interface. Sentry motion alerts do not take silent photographs.
 9. Test with a harmless task before using the assistant for anything important.
 
 You can deny optional permissions and still use parts of the app. Features that depend on a denied permission will be unavailable.
@@ -336,7 +338,7 @@ The workflow:
 Release artifact naming:
 
 ```
-JARVIS-PRO-v2.0.0.apk
+JARVIS-PRO-v2.1.0.apk
 ```
 
 ---
@@ -345,7 +347,7 @@ JARVIS-PRO-v2.0.0.apk
 
 Version 2.0.0 uses the Android application ID `com.mokshith.jarvis.ai`. Earlier builds used a different application ID. Android treats a changed application ID as a separate app:
 
-- Install v2.0.0 as a new app.
+- Install v2.1.0 as a new app.
 - The old app can remain installed alongside it.
 - Existing preferences and local data from the old package are not automatically migrated.
 - Export or back up any data you need before removing the previous installation.
