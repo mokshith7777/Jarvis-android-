@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'ai_service.dart';
 
@@ -65,7 +66,11 @@ class VisionPerceptionService extends ChangeNotifier {
       String? photoPath;
 
       if (base64Data == null) {
-        // Call native camera capture
+        final cameraPermission = await Permission.camera.request();
+        if (!cameraPermission.isGranted) {
+          throw Exception('Camera permission was not granted.');
+        }
+        // Launch the system camera UI only after explicit permission.
         final raw = await _channel.invokeMethod<Map<dynamic, dynamic>>('captureCameraPhoto');
         if (raw == null) {
           throw Exception('Optical sensor capture returned empty data.');
