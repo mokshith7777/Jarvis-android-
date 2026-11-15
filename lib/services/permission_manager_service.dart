@@ -7,6 +7,7 @@ import 'screen_automation_service.dart';
 
 enum AppPermissionType {
   microphone,
+  camera,
   sms,
   contacts,
   notifications,
@@ -54,6 +55,7 @@ class PermissionManagerService extends ChangeNotifier {
     notifyListeners();
 
     final micStatus = await Permission.microphone.isGranted;
+    final cameraStatus = await Permission.camera.isGranted;
     final smsStatus = await Permission.sms.isGranted;
     final contactsStatus = await Permission.contacts.isGranted;
     final notifStatus = await Permission.notification.isGranted;
@@ -73,6 +75,13 @@ class PermissionManagerService extends ChangeNotifier {
         description: 'Enables voice commands and speech recognition when you activate listening. Background listening depends on Android and device-specific restrictions.',
         icon: Icons.mic_rounded,
         isGranted: micStatus,
+      ),
+      AppPermissionInfo(
+        type: AppPermissionType.camera,
+        title: 'Camera & Visual Capture',
+        description: 'Allows an explicitly requested camera capture. Camera use must remain visible and permission-gated.',
+        icon: Icons.camera_alt_outlined,
+        isGranted: cameraStatus,
       ),
       AppPermissionInfo(
         type: AppPermissionType.sms,
@@ -138,6 +147,11 @@ class PermissionManagerService extends ChangeNotifier {
     switch (type) {
       case AppPermissionType.microphone:
         final status = await Permission.microphone.request();
+        await refresh();
+        return status.isGranted;
+
+      case AppPermissionType.camera:
+        final status = await Permission.camera.request();
         await refresh();
         return status.isGranted;
 
