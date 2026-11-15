@@ -170,6 +170,7 @@ class _PermissionsScreenState extends State<PermissionsScreen>
               for (final p in _service.permissions.where(
                 (p) =>
                     p.type == AppPermissionType.microphone ||
+                    p.type == AppPermissionType.camera ||
                     p.type == AppPermissionType.accessibility ||
                     p.type == AppPermissionType.overlay ||
                     p.type == AppPermissionType.batteryOptimization,
