@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_support/secure_storage_mock.dart';
 
 import 'package:jarvis_android/models/task_step.dart';
 import 'package:jarvis_android/services/ai_service.dart';
@@ -46,6 +47,7 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    installSecureStorageMock();
   });
 
   group('Feature 1: Conversational Memory & Learning', () {
@@ -477,7 +479,7 @@ void main() {
     test('Permission Manager Service initializes required categories', () {
       final manager = PermissionManagerService.instance;
       expect(manager.permissions, isNotNull);
-      expect(AppPermissionType.values.length, 8);
+      expect(AppPermissionType.values.length, 9);
     });
   });
 
