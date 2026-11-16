@@ -76,9 +76,9 @@ class VoiceService {
     try {
       final status = await Permission.microphone.request();
       return status.isGranted;
-    } catch (_) {
-      // Gracefully allow mock/headless testing environments where permission channel is unmocked
-      return true;
+    } catch (e) {
+      debugPrint('[VoiceService] Microphone permission request failed: $e');
+      return false;
     }
   }
 
