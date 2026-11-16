@@ -126,7 +126,7 @@ class JarvisService extends ChangeNotifier {
   final List<Map<String, String>> _dialogHistory = [];
 
   bool get isAlwaysOn => SettingsService.instance.jarvisAlwaysOn;
-  bool get _shouldListenContinuously => isAlwaysOn || _isInJarvisMode;
+  bool get _shouldListenContinuously => isAlwaysOn;
   ProactiveSuggestion? get pendingProactiveSuggestion => _pendingProactiveSuggestion;
   bool get isAwaitingProactiveConfirmation => _pendingProactiveSuggestion != null;
 
@@ -408,7 +408,8 @@ class JarvisService extends ChangeNotifier {
   void onEnterJarvisMode() {
     _isInJarvisMode = true;
     _standDown();
-    startListening();
+    // Entering JARVIS mode must not silently activate the microphone.
+    // Voice capture begins only after an explicit mic/voice action.
     // Arm mid-air proximity sensor for zero-touch gestures while in JARVIS mode
     unawaited(AirGestureService.instance.start());
     _statusMessage = 'STANDBY // SAY "HEY JARVIS"';
