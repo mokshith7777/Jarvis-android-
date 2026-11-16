@@ -56,19 +56,19 @@ jobs:
           VERSION_NAME="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionName='\\([^']*\\)'.*/\\1/p" | head -n 1)"
           VERSION_CODE="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionCode='\\([^']*\\)'.*/\\1/p" | head -n 1)"
           test "$APP_ID" = "com.mokshith.jarvis.ai"
-          test "$VERSION_NAME" = "2.1.0"
+          test "$VERSION_NAME" = "2.1.1"
           test "$VERSION_CODE" = "210"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           mkdir -p dist
-          cp "$APK" dist/JARVIS-PRO-v2.1.0.apk
+          cp "$APK" dist/JARVIS-PRO-v2.1.1.apk
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "APK SHA-256: $SHA256"
       - name: Upload verified APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jarvis-pro-v2.1.0-verified-apk
-          path: dist/JARVIS-PRO-v2.1.0.apk
+          name: jarvis-pro-v2.1.1-verified-apk
+          path: dist/JARVIS-PRO-v2.1.1.apk
           if-no-files-found: error
           retention-days: 30
       - name: Publish verified APK to GitHub Releases
@@ -76,10 +76,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          NOTES="JARVIS PRO v2.1.0 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 210. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. v2.1.0 includes the secure local credential vault, Groq provider preset, explicit Telegram chat authorization, camera permission flow, honest proximity-sensor status, and removal of silent Sentry camera capture. MediaPipe Hands tracking, MediaProjection screen streaming, and a dedicated persistent Telegram foreground service are not part of this build. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
-          if gh release view v2.1.0 >/dev/null 2>&1; then
-            gh release edit v2.1.0 --title "JARVIS PRO v2.1.0" --notes "$NOTES" --latest
+          NOTES="JARVIS PRO v2.1.1 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 210. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. v2.1.1 includes the secure local credential vault, Groq provider preset, explicit Telegram chat authorization, camera permission flow, honest proximity-sensor status, and removal of silent Sentry camera capture. MediaPipe Hands tracking, MediaProjection screen streaming, and a dedicated persistent Telegram foreground service are not part of this build. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
+          if gh release view v2.1.1 >/dev/null 2>&1; then
+            gh release edit v2.1.1 --title "JARVIS PRO v2.1.1" --notes "$NOTES" --latest
           else
-            gh release create v2.1.0 --title "JARVIS PRO v2.1.0" --notes "$NOTES" --latest
+            gh release create v2.1.1 --title "JARVIS PRO v2.1.1" --notes "$NOTES" --latest
           fi
-          gh release upload v2.1.0 dist/JARVIS-PRO-v2.1.0.apk --clobber
+          gh release upload v2.1.1 dist/JARVIS-PRO-v2.1.1.apk --clobber
