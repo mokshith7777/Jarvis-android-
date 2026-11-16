@@ -53,6 +53,12 @@ class SettingsService extends ChangeNotifier {
         await _prefs?.remove('telegram_token');
       }
     }
+    // Privacy migration: older builds defaulted to continuous microphone listening.
+    // Disable that behaviour once on upgrade; users can explicitly re-enable it in Settings.
+    if (_prefs?.getBool('mic_privacy_migration_v1') != true) {
+      await _prefs?.setBool('jarvis_always_on', false);
+      await _prefs?.setBool('mic_privacy_migration_v1', true);
+    }
     // Ensure system prompt is enabled so models always receive the agent action grammar
     if (_prefs?.getBool('ai_use_system_prompt') != true) {
       await _prefs?.setBool('ai_use_system_prompt', true);
@@ -272,7 +278,7 @@ class SettingsService extends ChangeNotifier {
   }
 
   /// Whether JARVIS listens continuously like Google Home without tapping.
-  bool get jarvisAlwaysOn => _prefs?.getBool('jarvis_always_on') ?? true;
+  bool get jarvisAlwaysOn => _prefs?.getBool('jarvis_always_on') ?? false;
   Future<void> setJarvisAlwaysOn(bool value) async {
     await _prefs?.setBool('jarvis_always_on', value);
     notifyListeners();
