@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_support/secure_storage_mock.dart';
 
 import 'package:jarvis_android/app.dart';
 import 'package:jarvis_android/models/skill.dart';
@@ -12,6 +13,12 @@ import 'package:jarvis_android/services/voice_service.dart';
 import 'package:jarvis_android/services/workflow_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    installSecureStorageMock();
+  });
+
   group('TaskStep parsing', () {
     test('parses a plain JSON object', () {
       final step = TaskStep.tryParse(
@@ -112,7 +119,10 @@ void main() {
     await SettingsService.instance.init();
 
     await tester.pumpWidget(const JarvisProApp());
-    await tester.pumpAndSettle();
+    // The cinematic intro uses a five-second timer. Advance it explicitly;
+    // pumpAndSettle can wait indefinitely on continuously animated HUDs.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Meet JARVIS PRO'), findsOneWidget);
     expect(find.text('Continue'), findsOneWidget);
@@ -126,11 +136,11 @@ void main() {
     await settings.init();
 
     await tester.pumpWidget(const MaterialApp(home: SettingsScreen()));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
 
     // Select the Ollama provider chip (fills the default model).
     await tester.tap(find.text('Ollama (local)'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
     expect(find.text('llama3.2'), findsOneWidget);
 
     // Type a custom model name into the Model field.
@@ -142,7 +152,7 @@ void main() {
     // Change an unrelated setting — this used to reset the Model field
     // back to the provider default.
     await tester.tap(find.text('Send system prompt'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
 
     final modelField = tester.widget<TextField>(
       find.widgetWithText(TextField, 'Model'),
@@ -151,7 +161,7 @@ void main() {
 
     // Saving persists the custom model, not the default.
     await tester.tap(find.text('Save changes'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 1));
     expect(settings.model, 'qwen2.5:7b');
   });
 
