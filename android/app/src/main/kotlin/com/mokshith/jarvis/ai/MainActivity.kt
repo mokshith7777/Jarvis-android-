@@ -357,10 +357,14 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun safeCancelAndDestroy() {
-        try {
-            speechRecognizer?.destroy()
-        } catch (_: Exception) {}
+        val recognizer = speechRecognizer
         speechRecognizer = null
+        try {
+            recognizer?.cancel()
+        } catch (_: Exception) {}
+        try {
+            recognizer?.destroy()
+        } catch (_: Exception) {}
     }
 
     private val restartRunnable = Runnable {
@@ -431,7 +435,9 @@ class MainActivity : FlutterActivity() {
             }
 
             if (!isContinuousListening) {
+                // Explicit one-shot capture ended or failed: release SpeechRecognizer.
                 mainHandler.post {
+                    safeCancelAndDestroy()
                     speechChannel?.invokeMethod("onSpeechStatus", "notListening")
                 }
                 return
@@ -482,7 +488,10 @@ class MainActivity : FlutterActivity() {
             if (isContinuousListening) {
                 scheduleRestart(50L)
             } else {
+                // A one-shot voice request is complete. Tear down the native
+                // recognizer instead of leaving its audio session allocated.
                 mainHandler.post {
+                    safeCancelAndDestroy()
                     speechChannel?.invokeMethod("onSpeechStatus", "notListening")
                 }
             }
