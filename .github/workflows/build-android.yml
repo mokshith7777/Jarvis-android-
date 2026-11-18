@@ -17,7 +17,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: jarvis-pro-v2-release-${{ github.ref }}
+  group: jarvis-pro-release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -25,23 +25,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Generate missing Gradle wrapper
+        shell: bash
+        run: |
+          set -euo pipefail
+          GRADLE_VERSION="9.3.1"
+          curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          cd android
+          /tmp/gradle-${GRADLE_VERSION}/bin/gradle wrapper --gradle-version "${GRADLE_VERSION}" --distribution-type all
+          chmod +x gradlew
+          test -s gradlew
+          test -s gradle/wrapper/gradle-wrapper.jar
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.50.0"
           channel: stable
           cache: true
+
       - name: Resolve dependencies
         run: flutter pub get
+
       - name: Analyze Dart source
         run: flutter analyze --no-fatal-infos
+
       - name: Run tests
         run: flutter test
+
       - name: Build release APK
         run: flutter build apk --release
+
       - name: Verify APK identity and signature
         id: verify
         shell: bash
@@ -52,34 +72,39 @@ jobs:
           BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
           AAPT="$BUILD_TOOLS/aapt"
           APKSIGNER="$BUILD_TOOLS/apksigner"
-          APP_ID="$("$AAPT" dump badging "$APK" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p" | head -n 1)"
-          VERSION_NAME="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionName='\\([^']*\\)'.*/\\1/p" | head -n 1)"
-          VERSION_CODE="$("$AAPT" dump badging "$APK" | sed -n "s/^package:.*versionCode='\\([^']*\\)'.*/\\1/p" | head -n 1)"
+          test -x "$AAPT"
+          test -x "$APKSIGNER"
+          BADGING="$("$AAPT" dump badging "$APK")"
+          APP_ID="$(printf '%s\n' "$BADGING" | sed -n "s/^package: name='\\([^']*\\)'.*/\\1/p" | head -n 1)"
+          VERSION_NAME="$(printf '%s\n' "$BADGING" | sed -n "s/^package:.*versionName='\\([^']*\\)'.*/\\1/p" | head -n 1)"
+          VERSION_CODE="$(printf '%s\n' "$BADGING" | sed -n "s/^package:.*versionCode='\\([^']*\\)'.*/\\1/p" | head -n 1)"
           test "$APP_ID" = "com.mokshith.jarvis.ai"
-          test "$VERSION_NAME" = "2.1.1"
-          test "$VERSION_CODE" = "211"
+          test "$VERSION_NAME" = "2.1.2"
+          test "$VERSION_CODE" = "212"
           "$APKSIGNER" verify --verbose --print-certs "$APK"
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           mkdir -p dist
-          cp "$APK" dist/JARVIS-PRO-v2.1.1.apk
+          cp "$APK" dist/JARVIS-PRO-v2.1.2.apk
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "APK SHA-256: $SHA256"
+
       - name: Upload verified APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: jarvis-pro-v2.1.1-verified-apk
-          path: dist/JARVIS-PRO-v2.1.1.apk
+          name: jarvis-pro-v2.1.2-verified-apk
+          path: dist/JARVIS-PRO-v2.1.2.apk
           if-no-files-found: error
           retention-days: 30
-      - name: Publish verified APK to GitHub Releases
+
+      - name: Publish APK to GitHub Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          NOTES="JARVIS PRO v2.1.1 built by GitHub Actions. Package: com.mokshith.jarvis.ai. Version code: 211. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies APK identity and signature. v2.1.1 includes the secure local credential vault, Groq provider preset, explicit Telegram chat authorization, camera permission flow, honest proximity-sensor status, and removal of silent Sentry camera capture. MediaPipe Hands tracking, MediaProjection screen streaming, and a dedicated persistent Telegram foreground service are not part of this build. Microphone privacy update: Always-On listening now defaults OFF, existing installs are migrated to OFF once, entering JARVIS mode no longer starts capture, and microphone permission failures are denied rather than treated as granted. Voice capture requires an explicit voice action; explicit Always-On opt-in remains available in Settings. This CI APK is debug-signed for testing; configure a private release signing key before Play Store distribution."
-          if gh release view v2.1.1 >/dev/null 2>&1; then
-            gh release edit v2.1.1 --title "JARVIS PRO v2.1.1" --notes "$NOTES" --latest
+          NOTES="JARVIS PRO v2.1.2 built from the repository's current mainline source. Package: com.mokshith.jarvis.ai. Version code: 212. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI completed Flutter analysis and tests, verified the APK package identity and signature, and published this APK directly to GitHub Releases. This version carries forward the v2.1.1 microphone privacy behavior: Always-On listening defaults OFF, entering JARVIS mode does not start microphone capture, and voice capture requires an explicit voice action unless the user separately opts in through Settings. This CI APK uses the Android debug signing identity for testing; configure a private release signing key before Play Store distribution."
+          if gh release view v2.1.2 >/dev/null 2>&1; then
+            gh release edit v2.1.2 --title "JARVIS PRO v2.1.2" --notes "$NOTES" --latest
           else
-            gh release create v2.1.1 --title "JARVIS PRO v2.1.1" --notes "$NOTES" --latest
+            gh release create v2.1.2 --title "JARVIS PRO v2.1.2" --notes "$NOTES" --latest
           fi
-          gh release upload v2.1.1 dist/JARVIS-PRO-v2.1.1.apk --clobber
+          gh release upload v2.1.2 dist/JARVIS-PRO-v2.1.2.apk --clobber

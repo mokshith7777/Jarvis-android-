@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.1.2 - Current-source Android release
+
+### Release and build pipeline
+- Bump the Android app version to 2.1.2 / version code 212.
+- Generate the missing Gradle wrapper during CI so the repository can build without committing machine-generated wrapper files.
+- Keep Flutter dependency resolution, static analysis, tests, APK identity checks, and signature verification in the release pipeline.
+- Publish the verified `JARVIS-PRO-v2.1.2.apk` directly to GitHub Releases.
+
+### Privacy continuity
+- Carry forward the v2.1.1 microphone privacy behavior. Always-On listening remains off by default, and voice capture requires an explicit user action unless separately enabled in Settings.
+- This is a release/build refresh of the current GitHub mainline source, not the separate v3.0.0 ZIP source.
+
+
 ## 2.0.0 - JARVIS PRO
 
 ### Identity and platform
