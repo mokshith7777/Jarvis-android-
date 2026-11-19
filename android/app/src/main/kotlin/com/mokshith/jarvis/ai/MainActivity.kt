@@ -643,6 +643,34 @@ class MainActivity : FlutterActivity() {
         aChannel.setMethodCallHandler { call, result ->
                 val service = AgentAccessibilityService.instance
                 when (call.method) {
+                    "indexDocument" -> {
+                        val content = call.argument<String>("content").orEmpty()
+                        val source = call.argument<String>("source") ?: "conversation"
+                        val pkg = call.argument<String>("packageName") ?: packageName
+                        if (content.isBlank()) result.success(false) else {
+                            val id = JarvisLocalIndexDb.getInstance(this).indexDocument(source, pkg, content, System.currentTimeMillis())
+                            result.success(id)
+                        }
+                    }
+                    "searchLocalIndex" -> {
+                        val query = call.argument<String>("query").orEmpty()
+                        val limit = (call.argument<Number>("limit") ?: 8).toInt().coerceIn(1, 30)
+                        result.success(JarvisLocalIndexDb.getInstance(this).search(query, limit))
+                    }
+                    "getLocalIndexStats" -> result.success(JarvisLocalIndexDb.getInstance(this).stats())
+                    "clearLocalIndex" -> {
+                        JarvisLocalIndexDb.getInstance(this).clearAll()
+                        result.success(true)
+                    }
+                    "setSocialIndexingEnabled" -> {
+                        val enabled = call.argument<Boolean>("enabled") ?: false
+                        getSharedPreferences("jarvis_local_index", MODE_PRIVATE).edit()
+                            .putBoolean("social_indexing_enabled", enabled).apply()
+                        result.success(enabled)
+                    }
+                    "isSocialIndexingEnabled" -> result.success(
+                        getSharedPreferences("jarvis_local_index", MODE_PRIVATE).getBoolean("social_indexing_enabled", false)
+                    )
                     "isServiceEnabled" -> result.success(
                         AgentAccessibilityService.isConnected
                     )

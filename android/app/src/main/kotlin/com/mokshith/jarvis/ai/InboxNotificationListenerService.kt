@@ -60,6 +60,18 @@ class InboxNotificationListenerService : NotificationListenerService() {
 
         if (title.isBlank() && text.isBlank()) return
 
+        val indexEnabled = getSharedPreferences("jarvis_local_index", MODE_PRIVATE)
+            .getBoolean("social_indexing_enabled", false)
+        val indexPackages = setOf(
+            "com.instagram.android", "com.google.android.youtube", "com.twitter.android",
+            "com.whatsapp", "com.linkedin.android", "org.telegram.messenger", "com.android.chrome"
+        )
+        if (indexEnabled && pkg in indexPackages) {
+            JarvisLocalIndexDb.getInstance(this).indexDocument(
+                "notification", pkg, listOf(title, text, subText).filter { it.isNotBlank() }.joinToString("\n"), postTime
+            )
+        }
+
         val item = mapOf(
             "package" to pkg,
             "title" to title,

@@ -35,6 +35,39 @@ class AgentAccessibilityService : AccessibilityService() {
     }
 
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+    @Volatile private var lastSocialIndexAt = 0L
+    private val socialIndexPackages = setOf(
+        "com.instagram.android", "com.google.android.youtube", "com.twitter.android",
+        "com.whatsapp", "com.linkedin.android", "org.telegram.messenger", "com.android.chrome"
+    )
+
+    private fun collectSocialIndex(event: AccessibilityEvent, pkg: String) {
+        if (event.eventType != AccessibilityEvent.TYPE_VIEW_SCROLLED || pkg !in socialIndexPackages) return
+        if (!getSharedPreferences("jarvis_local_index", MODE_PRIVATE).getBoolean("social_indexing_enabled", false)) return
+        val now = System.currentTimeMillis()
+        if (now - lastSocialIndexAt < 3500L) return
+        lastSocialIndexAt = now
+        val root = rootInActiveWindow ?: event.source ?: return
+        val text = StringBuilder()
+        fun visit(node: AccessibilityNodeInfo?, depth: Int) {
+            if (node == null || depth > 18 || text.length >= 12000) return
+            if (!node.isPassword) {
+                val value = node.text?.toString()?.trim().orEmpty()
+                val desc = node.contentDescription?.toString()?.trim().orEmpty()
+                if (value.isNotEmpty()) text.append(value).append('\n')
+                if (desc.isNotEmpty() && desc != value) text.append(desc).append('\n')
+            }
+            for (i in 0 until node.childCount) visit(node.getChild(i), depth + 1)
+        }
+        try {
+            visit(root, 0)
+            val content = text.toString().trim().take(12000)
+            if (content.length >= 24) JarvisLocalIndexDb.getInstance(this)
+                .indexDocument("social_screen", pkg, content, now)
+        } catch (e: Exception) {
+            android.util.Log.w("JARVIS_INDEX", "Screen indexing failed", e)
+        }
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -67,9 +100,11 @@ class AgentAccessibilityService : AccessibilityService() {
     fun getMacroRecordingStatus(): Boolean = isRecordingMacro
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (!isRecordingMacro || event == null) return
+        if (event == null) return
         val pkg = event.packageName?.toString() ?: ""
-        if (pkg == packageName) return // Ignore self-interactions inside PrivateAgent
+        if (pkg == packageName) return // Ignore self-interactions inside JARVIS
+        collectSocialIndex(event, pkg)
+        if (!isRecordingMacro) return
 
         when (event.eventType) {
             AccessibilityEvent.TYPE_VIEW_CLICKED -> {
