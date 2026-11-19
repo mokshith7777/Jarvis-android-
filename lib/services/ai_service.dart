@@ -634,7 +634,9 @@ class AiService {
   }) {
     final normalizedProvider = provider.toLowerCase();
     if (normalizedProvider == 'jarvis_local' || normalizedProvider == 'ollama' ||
-        localFirstPrivacyMode) return true;
+        localFirstPrivacyMode) {
+      return true;
+    }
     final host = (Uri.tryParse(baseUrl)?.host ?? '').toLowerCase();
     if (host == 'localhost' || host == '127.0.0.1' || host == '::1' ||
         host == '[::1]' || host.endsWith('.local') || host.endsWith('.ts.net')) {
