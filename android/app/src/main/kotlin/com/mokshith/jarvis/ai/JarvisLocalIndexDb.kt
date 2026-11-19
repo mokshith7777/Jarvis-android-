@@ -24,7 +24,13 @@ class JarvisLocalIndexDb private constructor(context: Context) :
         db.execSQL("CREATE INDEX memory_hash_time ON memory_entries(content_hash, created_at)")
         db.execSQL("CREATE VIRTUAL TABLE memory_fts USING fts4(content, package_name, source, tokenize=unicode61)")
     }
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.enableWriteAheadLogging()
+    }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) { }
+
+    @Synchronized
     fun indexDocument(source: String, packageName: String, content: String, timestamp: Long): Long {
         val clean = content.trim().take(20000)
         if (clean.length < 3) return -1L
@@ -50,26 +56,50 @@ class JarvisLocalIndexDb private constructor(context: Context) :
             return id
         } finally { db.endTransaction() }
     }
+    @Synchronized
     fun search(query: String, limit: Int = 8): List<Map<String, Any>> {
-        val terms = query.lowercase().split(Regex("[^\\p{L}\\p{N}_]+")).filter { it.length > 1 }.distinct().take(10)
+        val terms = query.lowercase().split(Regex("[^\\p{L}\\p{N}]+"))
+            .map { token -> token.filter { it.isLetterOrDigit() } }
+            .filter { it.length > 1 }.distinct().take(10)
         if (terms.isEmpty()) return emptyList()
-        val match = terms.joinToString(" OR ") { "\"" + it.replace("\"", "") + "\"*" }
-        val output = mutableListOf<Map<String, Any>>()
+        val safeLimit = limit.coerceIn(1, 30)
+        val match = terms.joinToString(" OR ") { "$it*" }
         val sql = """SELECT e._id, e.source, e.package_name, e.content, e.created_at
             FROM memory_fts f JOIN memory_entries e ON e._id=f.rowid
             WHERE memory_fts MATCH ? ORDER BY e.created_at DESC LIMIT ?"""
-        readableDatabase.rawQuery(sql, arrayOf(match, limit.coerceIn(1, 30).toString())).use { c ->
-            val now = System.currentTimeMillis()
-            while (c.moveToNext()) {
-                val created = c.getLong(4)
-                val ageHours = (now - created).coerceAtLeast(0L) / 3600000.0
-                output.add(mapOf("id" to c.getLong(0), "source" to c.getString(1),
-                    "packageName" to c.getString(2), "content" to c.getString(3),
-                    "timestamp" to created, "recencyScore" to (1.0 / (1.0 + ageHours))))
+        return try {
+            readableDatabase.rawQuery(sql, arrayOf(match, safeLimit.toString())).use { rowsToMaps(it) }
+        } catch (ftsError: Exception) {
+            android.util.Log.w("JARVIS_INDEX", "FTS search failed; using LIKE fallback", ftsError)
+            try {
+                val where = terms.joinToString(" OR ") { "e.content LIKE ?" }
+                val args = terms.map { "%$it%" }.toTypedArray() + arrayOf(safeLimit.toString())
+                readableDatabase.rawQuery(
+                    """SELECT e._id, e.source, e.package_name, e.content, e.created_at
+                       FROM memory_entries e WHERE $where ORDER BY e.created_at DESC LIMIT ?""",
+                    args
+                ).use { rowsToMaps(it) }
+            } catch (fallbackError: Exception) {
+                android.util.Log.e("JARVIS_INDEX", "LIKE fallback search failed", fallbackError)
+                emptyList()
             }
+        }
+    }
+
+    private fun rowsToMaps(cursor: android.database.Cursor): List<Map<String, Any>> {
+        val output = mutableListOf<Map<String, Any>>()
+        val now = System.currentTimeMillis()
+        while (cursor.moveToNext()) {
+            val created = cursor.getLong(4)
+            val ageHours = (now - created).coerceAtLeast(0L) / 3600000.0
+            output.add(mapOf("id" to cursor.getLong(0), "source" to cursor.getString(1),
+                "packageName" to cursor.getString(2), "content" to cursor.getString(3),
+                "timestamp" to created, "recencyScore" to (1.0 / (1.0 + ageHours))))
         }
         return output.sortedByDescending { it["recencyScore"] as Double }
     }
+
+    @Synchronized
     fun stats(): Map<String, Any> {
         readableDatabase.rawQuery("SELECT COUNT(*), COALESCE(MAX(created_at), 0) FROM memory_entries", null).use { c ->
             if (c.moveToFirst()) return mapOf("entries" to c.getInt(0), "lastIndexedAt" to c.getLong(1),
@@ -77,12 +107,14 @@ class JarvisLocalIndexDb private constructor(context: Context) :
         }
         return mapOf("entries" to 0, "lastIndexedAt" to 0L, "databaseBytes" to 0L)
     }
+    @Synchronized
     fun clearAll() {
-        writableDatabase.beginTransaction()
+        val db = writableDatabase
+        db.beginTransaction()
         try {
-            writableDatabase.delete("memory_fts", null, null)
-            writableDatabase.delete("memory_entries", null, null)
-            writableDatabase.setTransactionSuccessful()
-        } finally { writableDatabase.endTransaction() }
+            db.delete("memory_fts", null, null)
+            db.delete("memory_entries", null, null)
+            db.setTransactionSuccessful()
+        } finally { db.endTransaction() }
     }
 }
