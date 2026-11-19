@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Android SQLite/FTS4 bridge. Gracefully degrades in Dart-only tests and non-Android hosts.
@@ -9,12 +10,18 @@ class LocalIndexService {
   Future<int?> indexDocument({required String source, required String packageName, required String content}) async {
     if (content.trim().isEmpty) return null;
     try {
-      return await _channel.invokeMethod<int>('indexDocument', {
+      final value = await _channel.invokeMethod<dynamic>('indexDocument', {
         'source': source, 'packageName': packageName, 'content': content,
       });
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value == null) return null;
+      debugPrint('[LocalIndexService] Unexpected indexDocument result type: ${value.runtimeType}');
+      return null;
     } on MissingPluginException {
       return null;
-    } on PlatformException {
+    } on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] indexDocument platform error: ${error.code}: ${error.message}');
       return null;
     }
   }
@@ -27,7 +34,8 @@ class LocalIndexService {
       return (rows ?? const []).whereType<Map>().map((row) => Map<String, dynamic>.from(row)).toList();
     } on MissingPluginException {
       return const [];
-    } on PlatformException {
+    } on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] search platform error: ${error.code}: ${error.message}');
       return const [];
     }
   }
@@ -44,7 +52,8 @@ class LocalIndexService {
         await _channel.invokeMapMethod<String, dynamic>('getLocalIndexStats') ?? const {});
     } on MissingPluginException {
       return const {};
-    } on PlatformException {
+    } on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] stats platform error: ${error.code}: ${error.message}');
       return const {};
     }
   }
@@ -52,13 +61,17 @@ class LocalIndexService {
   Future<void> clear() async {
     try { await _channel.invokeMethod<void>('clearLocalIndex'); }
     on MissingPluginException { }
-    on PlatformException { }
+    on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] clear platform error: ${error.code}: ${error.message}');
+    }
   }
 
   Future<void> setSocialIndexingEnabled(bool enabled) async {
     try { await _channel.invokeMethod<void>('setSocialIndexingEnabled', {'enabled': enabled}); }
     on MissingPluginException { }
-    on PlatformException { }
+    on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] setSocialIndexingEnabled platform error: ${error.code}: ${error.message}');
+    }
   }
 
   Future<bool> isSocialIndexingEnabled() async {
@@ -66,7 +79,8 @@ class LocalIndexService {
       return await _channel.invokeMethod<bool>('isSocialIndexingEnabled') ?? false;
     } on MissingPluginException {
       return false;
-    } on PlatformException {
+    } on PlatformException catch (error) {
+      debugPrint('[LocalIndexService] isSocialIndexingEnabled platform error: ${error.code}: ${error.message}');
       return false;
     }
   }
