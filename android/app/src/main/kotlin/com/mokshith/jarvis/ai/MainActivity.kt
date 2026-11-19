@@ -31,6 +31,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
 import java.util.Calendar
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -49,6 +51,25 @@ class MainActivity : FlutterActivity() {
     private var isContinuousListening = false
     private var isRestartPending = false
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val bridgeExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+
+    private fun runBridgeDatabaseTask(result: MethodChannel.Result, task: () -> Any?) {
+        try {
+            bridgeExecutor.execute {
+                try {
+                    val value = task()
+                    mainHandler.post { result.success(value) }
+                } catch (error: Exception) {
+                    android.util.Log.e("JARVIS_INDEX", "Local index operation failed", error)
+                    mainHandler.post {
+                        result.error("LOCAL_INDEX_ERROR", error.message ?: "Local index operation failed", null)
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            result.error("LOCAL_INDEX_UNAVAILABLE", error.message ?: "Local index executor unavailable", null)
+        }
+    }
 
     // Background Media / Music protection (avoids audio-focus theft that pauses YouTube / music players)
     private var mediaSuppressionUntil: Long = 0L
@@ -96,15 +117,23 @@ class MainActivity : FlutterActivity() {
                 try {
                     val file = File(currentPhotoPath!!)
                     if (file.exists() && file.length() > 0) {
-                        val bytes = file.readBytes()
-                        val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-                        result?.success(
-                            mapOf(
-                                "path" to file.absolutePath,
-                                "base64" to b64,
-                                "size" to bytes.size
-                            )
-                        )
+                        bridgeExecutor.execute {
+                            try {
+                                val bytes = file.readBytes()
+                                val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                                mainHandler.post {
+                                    result?.success(mapOf(
+                                        "path" to file.absolutePath,
+                                        "base64" to b64,
+                                        "size" to bytes.size
+                                    ))
+                                }
+                            } catch (error: Exception) {
+                                mainHandler.post {
+                                    result?.error("CAMERA_ERROR", "Failed to process photo: ${error.message}", null)
+                                }
+                            }
+                        }
                         return
                     }
                 } catch (e: Exception) {
@@ -117,6 +146,10 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null)
+        pendingCameraResult?.error("ACTIVITY_DESTROYED", "Camera request cancelled because the activity was closed", null)
+        pendingCameraResult = null
+        bridgeExecutor.shutdownNow()
         stopNativeListening()
         try {
             speechRecognizer?.destroy()
@@ -647,20 +680,28 @@ class MainActivity : FlutterActivity() {
                         val content = call.argument<String>("content").orEmpty()
                         val source = call.argument<String>("source") ?: "conversation"
                         val pkg = call.argument<String>("packageName") ?: packageName
-                        if (content.isBlank()) result.success(false) else {
-                            val id = JarvisLocalIndexDb.getInstance(this).indexDocument(source, pkg, content, System.currentTimeMillis())
-                            result.success(id)
+                        if (content.isBlank()) {
+                            result.success(null)
+                        } else {
+                            runBridgeDatabaseTask(result) {
+                                JarvisLocalIndexDb.getInstance(applicationContext)
+                                    .indexDocument(source, pkg, content, System.currentTimeMillis())
+                            }
                         }
                     }
                     "searchLocalIndex" -> {
                         val query = call.argument<String>("query").orEmpty()
                         val limit = (call.argument<Number>("limit") ?: 8).toInt().coerceIn(1, 30)
-                        result.success(JarvisLocalIndexDb.getInstance(this).search(query, limit))
+                        runBridgeDatabaseTask(result) {
+                            JarvisLocalIndexDb.getInstance(applicationContext).search(query, limit)
+                        }
                     }
-                    "getLocalIndexStats" -> result.success(JarvisLocalIndexDb.getInstance(this).stats())
-                    "clearLocalIndex" -> {
-                        JarvisLocalIndexDb.getInstance(this).clearAll()
-                        result.success(true)
+                    "getLocalIndexStats" -> runBridgeDatabaseTask(result) {
+                        JarvisLocalIndexDb.getInstance(applicationContext).stats()
+                    }
+                    "clearLocalIndex" -> runBridgeDatabaseTask(result) {
+                        JarvisLocalIndexDb.getInstance(applicationContext).clearAll()
+                        true
                     }
                     "setSocialIndexingEnabled" -> {
                         val enabled = call.argument<Boolean>("enabled") ?: false
@@ -962,6 +1003,11 @@ class MainActivity : FlutterActivity() {
                                 addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
+                            pendingCameraResult?.error(
+                                "CAMERA_REQUEST_REPLACED",
+                                "Previous camera request was replaced by a new request",
+                                null
+                            )
                             pendingCameraResult = result
                             startActivityForResult(takePictureIntent, cameraRequestCode)
                         } catch (e: Exception) {
