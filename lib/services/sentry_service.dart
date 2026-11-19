@@ -9,10 +9,8 @@ import 'settings_service.dart';
 import 'telegram_service.dart';
 import 'voice_service.dart';
 
-/// Tactical Sentry Mode Anti-Theft Watchdog:
-/// Uses device motion sensors to detect unauthorized phone handling,
-/// captures silent front-camera telemetry, alerts the room,
-/// and dispatches the intruder snapshot to the user's paired Telegram terminal.
+/// Tactical Sentry Mode uses native motion sensors only.
+/// It reports movement telemetry and never activates the camera.
 class SentryService extends ChangeNotifier {
   SentryService._();
   static final SentryService instance = SentryService._();
@@ -35,8 +33,7 @@ class SentryService extends ChangeNotifier {
   Future<void> handleNativeCall(MethodCall call) async {
     if (call.method == 'onSentryMovementDetected') {
       final args = call.arguments as Map?;
-      final b64 = args?['base64']?.toString() ?? '';
-      await _handleBreach(b64);
+      await _handleBreach();
     }
   }
 
@@ -83,20 +80,20 @@ class SentryService extends ChangeNotifier {
     }
   }
 
-  Future<void> _handleBreach(String photoBase64) async {
+  Future<void> _handleBreach() async {
     if (!_isArmed) return;
     _breachDetected = true;
-    _lastBreachPhotoBase64 = photoBase64.isNotEmpty ? photoBase64 : null;
+    _lastBreachPhotoBase64 = null;
     _lastBreachTime = DateTime.now();
     notifyListeners();
 
     HapticFeedback.heavyImpact();
 
     // 1. Imposing vocal deterrence
-    const alertSpeech = 'Security violation detected. Spatial coordinates and facial telemetry logged and dispatched.';
+    const alertSpeech = 'Security movement detected. Native motion-sensor telemetry recorded. No camera was activated.';
     unawaited(VoiceService.instance.speak(alertSpeech));
 
-    // 2. Dispatch photo & breach coordinates to connected Telegram terminal
+    // 2. Dispatch a text-only motion telemetry alert to the paired Telegram terminal.
     final settings = SettingsService.instance;
     final ownerChat = settings.telegramOwnerChatId;
     if (ownerChat.isNotEmpty) {
@@ -104,13 +101,9 @@ class SentryService extends ChangeNotifier {
       final caption = '🚨 *J.A.R.V.I.S. SENTRY ALERT*\n'
           '⚠️ *Unauthorized Movement Detected!*\n'
           '⏱ *Timestamp*: $timeFormatted\n'
-          '🛡 *Status*: Intruder snapshot acquired & logged.';
+          '🛡 *Status*: Motion-sensor telemetry logged. No camera capture.';
 
-      if (photoBase64.isNotEmpty) {
-        await TelegramService.instance.sendPhoto(ownerChat, photoBase64, caption: caption);
-      } else {
-        await TelegramService.instance.sendMessage(ownerChat, caption);
-      }
+      await TelegramService.instance.sendMessage(ownerChat, caption);
     }
   }
 }

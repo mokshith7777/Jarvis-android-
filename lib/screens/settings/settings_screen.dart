@@ -365,7 +365,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 12),
           GlassTextField(
             controller: _apiKeyController,
-            labelText: 'Provider API key (stored in Android secure storage)',
+            labelText: 'Provider API key (optional for local AI; stored securely)',
             obscureText: _obscureKey,
             prefixIcon: const Icon(Icons.vpn_key_outlined, size: 20),
             suffixIcon: IconButton(
@@ -380,7 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           GlassTextField(
             controller: _modelController,
             labelText: 'Model',
-            hintText: 'deepseek-chat',
+            hintText: 'Local mode needs no key; cloud providers may require one',
             prefixIcon: const Icon(Icons.psychology_outlined, size: 20),
           ),
           const SizedBox(height: 16),
@@ -413,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: EdgeInsets.only(top: 8),
               child: Center(
                 child: Text(
-                  'Unsaved changes — tap Save to persist your API key and model.',
+                  'Unsaved changes — tap Save to persist your optional API key and model.',
                   style: TextStyle(fontSize: 11.5, color: Colors.amber),
                 ),
               ),

@@ -6,6 +6,7 @@ import '../../services/app_usage_service.dart';
 import '../../services/commute_traffic_service.dart';
 import '../../services/conversational_memory_service.dart';
 import '../../services/hermes_evolution_service.dart';
+import '../../services/local_index_service.dart';
 import '../../services/jarvis_service.dart';
 import '../../services/macro_recorder_service.dart';
 import '../../services/personality_service.dart';
@@ -32,7 +33,7 @@ import 'permissions_screen.dart';
 /// Dedicated configuration suite for all J.A.R.V.I.S. autonomous capabilities:
 /// - Always-On Voice & Speech Synthesis
 /// - Personality & Emotional Intelligence
-/// - Self-Evolving Workflows (Hermes Engine)
+/// - Self-Evolving Workflows
 /// - Conversational Memory & Data Governance
 /// - Hermes Self-Evolving tri-partite context (SOUL.md, USER.md, AGENT.md)
 class JarvisSettingsScreen extends StatefulWidget {
@@ -45,10 +46,14 @@ class JarvisSettingsScreen extends StatefulWidget {
 class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
   final _settings = SettingsService.instance;
   final _hermes = HermesEvolutionService.instance;
+  bool _socialIndexingEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    LocalIndexService.instance.isSocialIndexingEnabled().then((enabled) {
+      if (mounted) setState(() => _socialIndexingEnabled = enabled);
+    });
     _hermes.init().then((_) {
       if (mounted) setState(() {});
     });
@@ -114,7 +119,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
           _sectionTitle('Personality & Emotional Intelligence'),
           _personalityCard(theme),
           const SizedBox(height: 20),
-          _sectionTitle('Self-Evolving Workflows (Hermes Engine)'),
+          _sectionTitle('Self-Evolving Workflows'),
           _workflowsCard(theme),
           const SizedBox(height: 20),
           _sectionTitle('🛡️ Sentry Mode (Tactical Anti-Theft Watchdog)'),
@@ -132,7 +137,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
           _sectionTitle('🚀 Stark Superpowers & Cyber Suite'),
           _starkSuperpowersCard(theme),
           const SizedBox(height: 20),
-          _sectionTitle('🪄 Autonomous "Macro Recorder" (Hermes Skills)'),
+          _sectionTitle('🪄 Autonomous Macro Recorder'),
           _macroRecorderCard(theme),
           const SizedBox(height: 20),
           _sectionTitle('🏠 Smart Home & IoT Automation (Home Assistant)'),
@@ -147,7 +152,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
           _sectionTitle('Memory & Privacy Governance'),
           _privacyCard(theme),
           const SizedBox(height: 20),
-          _sectionTitle('Hermes Self-Evolving Context (SOUL, USER, AGENT)'),
+          _sectionTitle('Personal AI Context'),
           _hermesEvolutionCard(theme),
         ],
       ),
@@ -596,7 +601,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // 3. Self-Evolving Workflows Card (Hermes Engine)
+  // 3. Self-Evolving Workflows Card (Workflow Engine)
   // ---------------------------------------------------------------------------
   Widget _workflowsCard(ThemeData theme) {
     final workflows = WorkflowService.instance.workflows;
@@ -614,7 +619,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               subtitle: const Text(
-                'Hermes Engine: automatically detects user intent and engages hardware protocols',
+                'Workflow engine detects user intent and engages supported device protocols',
                 style: TextStyle(fontSize: 12),
               ),
               value: _settings.jarvisWorkflowsEnabled,
@@ -811,7 +816,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Armed watchdog detects unauthorized handling, speaks an imposing security warning, captures a silent front-camera snapshot, and immediately transmits the photo to your paired Telegram terminal.',
+              'Sentry uses native motion sensors to detect handling and can send a text-only telemetry alert to your paired Telegram terminal. It never activates the camera.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
                 height: 1.4,
@@ -1451,7 +1456,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // 3c. Autonomous "Macro Recorder" (Hermes Skills) Card
+  // 3c. Autonomous Macro Recorder Card
   // ---------------------------------------------------------------------------
   Widget _macroRecorderCard(ThemeData theme) {
     final recorder = MacroRecorderService.instance;
@@ -2247,6 +2252,36 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text(
+                'Social Screen & Notification Indexing',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'OFF by default. When enabled, indexes visible text after scrolling in allowlisted apps and saves their notifications locally. Disable any time.',
+                style: TextStyle(fontSize: 12),
+              ),
+              value: _socialIndexingEnabled,
+              onChanged: (value) async {
+                await LocalIndexService.instance.setSocialIndexingEnabled(value);
+                if (mounted) setState(() => _socialIndexingEnabled = value);
+              },
+            ),
+            const Divider(height: 20),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Local Index Storage'),
+              subtitle: const Text('Permanently clear all indexed content from this device.'),
+              trailing: TextButton(
+                onPressed: () async {
+                  await LocalIndexService.instance.clear();
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Local index cleared.')));
+                },
+                child: const Text('Clear index'),
+              ),
+            ),
+            const Divider(height: 20),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text(
                 'Permission Confirmation for Sensitive Actions',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
@@ -2493,7 +2528,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
 
     final lastEvolved = _hermes.lastEvolvedAt != null
         ? 'Last evolved: ${_hermes.lastEvolvedAt!.toLocal().toString().split('.').first}'
-        : 'Default Hermes templates active';
+        : 'Default personal context templates active';
 
     return Card(
       child: Padding(
@@ -2535,7 +2570,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                       Row(
                         children: [
                           const Text(
-                            'Hermes Self-Evolution Engine',
+                            'Personal Context Engine',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -2566,7 +2601,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Tri-partite context files (SOUL, USER, AGENT) based on Nous Research Hermes.',
+                        'Editable SOUL, USER, and AGENT context files.',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontSize: 11.5,
@@ -2665,7 +2700,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Hermes Engine evolved SOUL.md, USER.md & AGENT.md with latest telemetry!'),
+                        content: Text('Personal context updated with the latest telemetry.'),
                         duration: Duration(seconds: 2),
                         behavior: SnackBarBehavior.floating,
                       ),
@@ -2885,7 +2920,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reset All Hermes Files?'),
+        title: const Text('Reset All Context Files?'),
         content: const Text(
           'This will revert SOUL.md, USER.md, and AGENT.md to their default Nous Research templates.',
         ),
@@ -2900,7 +2935,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
               await _hermes.resetAll();
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All Hermes context files reset to defaults.')),
+                  const SnackBar(content: Text('All context files reset to defaults.')),
                 );
                 setState(() {});
               }
