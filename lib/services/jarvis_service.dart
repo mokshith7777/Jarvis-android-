@@ -15,6 +15,8 @@ import '../widgets/network_audit_dialog.dart';
 import '../widgets/optical_solver_dialog.dart';
 import '../widgets/polyglot_diplomat_dialog.dart';
 import 'ai_service.dart';
+import 'local_index_service.dart';
+import 'local_worker_service.dart';
 import 'air_gesture_service.dart';
 import 'airspace_radar_service.dart';
 import 'app_launcher_service.dart';
@@ -813,6 +815,43 @@ class JarvisService extends ChangeNotifier {
     }
   }
 
+  Future<bool> _handleLocalWorkerCommand(String command) async {
+    final lower = command.toLowerCase().trim();
+    final index = LocalIndexService.instance;
+    final worker = LocalWorkerService.instance;
+    try {
+      if (lower.startsWith('remember ') || lower.contains('search my memory') || lower.contains('recall my') || lower.contains('what did i')) {
+        final query = command.replaceFirst(RegExp(r'^(remember|search my memory|recall my)\\s*', caseSensitive: false), '');
+        final context = await index.buildContext(query.isEmpty ? command : query, limit: 8);
+        _lastJarvisSpeech = context.isEmpty ? 'No matching local memories were found.' : 'I found these local memories: ' + context;
+      } else if (lower.startsWith('browse ') || lower.startsWith('search the web for ') || lower.startsWith('look up ')) {
+        final query = command.replaceFirst(RegExp(r'^(browse|search the web for|look up)\\s*', caseSensitive: false), '');
+        final result = await worker.browse(query);
+        final rows = (result['results'] as List? ?? const []).take(5).map((item) => (item as Map)['title']?.toString() ?? '').where((value) => value.isNotEmpty);
+        _lastJarvisSpeech = rows.isEmpty ? 'The local web search returned no readable results.' : 'Local web search results: ' + rows.join('. ');
+      } else if (lower.startsWith('generate image ') || lower.startsWith('create image ')) {
+        final prompt = command.replaceFirst(RegExp(r'^(generate|create) image\\s*', caseSensitive: false), '');
+        final result = await worker.generateImage(prompt);
+        _lastJarvisSpeech = 'Image generation completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
+      } else if (lower.startsWith('edit video ')) {
+        final result = await worker.editVideo(command.substring('edit video '.length).trim());
+        _lastJarvisSpeech = 'Video edit completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
+      } else if (lower.startsWith('create storyboard video ') || lower.startsWith('generate storyboard video ')) {
+        final prompt = command.replaceFirst(RegExp(r'^(create|generate) storyboard video\\s*', caseSensitive: false), '');
+        final result = await worker.generateStoryboardVideo(prompt);
+        _lastJarvisSpeech = 'Storyboard video completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
+      } else { return false; }
+      await index.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'JARVIS: ' + _lastJarvisSpeech);
+      _phase = JarvisPhase.speaking; _statusMessage = 'LOCAL INDEX AI // COMPLETE'; notifyListeners();
+      await _voice.speak(_lastJarvisSpeech);
+      return true;
+    } catch (error) {
+      _lastJarvisSpeech = 'The local worker could not complete that request: ' + error.toString();
+      _phase = JarvisPhase.speaking; _statusMessage = 'LOCAL WORKER UNAVAILABLE'; notifyListeners();
+      await _voice.speak(_lastJarvisSpeech);
+      return true;
+    }
+  }
   /// Processes a voice command through JARVIS intelligence.
   Future<void> processCommand(String command) async {
     _wakeUp();
@@ -826,6 +865,8 @@ class JarvisService extends ChangeNotifier {
     notifyListeners();
 
     final lower = trimmed.toLowerCase();
+    unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'USER: ' + trimmed));
+    if (await _handleLocalWorkerCommand(trimmed)) return;
 
     // 1. Fast cancel / abort check
     if (lower == 'stop' ||
