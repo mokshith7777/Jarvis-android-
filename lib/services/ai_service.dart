@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show InternetAddress, InternetAddressType;
 
 import 'package:http/http.dart' as http;
 
@@ -626,14 +627,37 @@ class AiService {
   final http.Client _client = http.Client();
 
   /// True for local backends (Ollama etc.) that accept any/empty API key.
+  static bool isLocalBackendConfig({
+    required String provider,
+    required String baseUrl,
+    bool localFirstPrivacyMode = false,
+  }) {
+    final normalizedProvider = provider.toLowerCase();
+    if (normalizedProvider == 'jarvis_local' || normalizedProvider == 'ollama' ||
+        localFirstPrivacyMode) return true;
+    final host = (Uri.tryParse(baseUrl)?.host ?? '').toLowerCase();
+    if (host == 'localhost' || host == '127.0.0.1' || host == '::1' ||
+        host == '[::1]' || host.endsWith('.local') || host.endsWith('.ts.net')) {
+      return true;
+    }
+    final address = InternetAddress.tryParse(host);
+    if (address == null || address.type != InternetAddressType.IPv4) return false;
+    final octets = address.rawAddress;
+    final a = octets[0], b = octets[1];
+    return a == 10 ||
+        (a == 172 && b >= 16 && b <= 31) ||
+        (a == 192 && b == 168) ||
+        (a == 100 && b >= 64 && b <= 127) ||
+        a == 127;
+  }
+
   bool get _isLocalBackend {
     final settings = SettingsService.instance;
-    final provider = settings.provider.toLowerCase();
-    if (provider == 'jarvis_local' || provider == 'ollama' || settings.localFirstPrivacyMode) return true;
-    final host = (Uri.tryParse(settings.baseUrl)?.host ?? '').toLowerCase();
-    if (host == 'localhost' || host == '127.0.0.1' || host == '::1' ||
-        host == '[::1]' || host.endsWith('.local') || host.endsWith('.ts.net')) return true;
-    return host.startsWith('192.168.') || host.startsWith('10.') || host.startsWith('100.');
+    return isLocalBackendConfig(
+      provider: settings.provider,
+      baseUrl: settings.baseUrl,
+      localFirstPrivacyMode: settings.localFirstPrivacyMode,
+    );
   }
 
   /// The system prompt that turns a chat model into a UI automation agent.
@@ -643,7 +667,7 @@ class AiService {
     return '''
 $hermes
 
-You are PrivateAgent, an autonomous Android UI automation agent.
+You are JARVIS, an autonomous Android UI automation agent.
 ${memory.isNotEmpty ? '$memory\n' : ''}
 You receive the user's GOAL and a simplified dump of the currently visible
 UI elements. Each line looks like:
@@ -838,7 +862,7 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
           'AppleWebKit/537.36 (KHTML, like Gecko) '
           'Chrome/120.0.0.0 Mobile Safari/537.36',
       if (settings.provider == 'openrouter') ...{
-        'HTTP-Referer': 'https://privateagent.local',
+        'HTTP-Referer': 'https://jarvis.local',
         'X-Title': 'JARVIS',
       },
     };
@@ -1304,8 +1328,8 @@ The user is viewing an article or screen on their device and requested an execut
           'AppleWebKit/537.36 (KHTML, like Gecko) '
           'Chrome/120.0.0.0 Mobile Safari/537.36',
       if (settings.provider == 'openrouter') ...{
-        'HTTP-Referer': 'https://privateagent.local',
-        'X-Title': 'PrivateAgent',
+        'HTTP-Referer': 'https://jarvis.local',
+        'X-Title': 'JARVIS',
       },
     };
 
