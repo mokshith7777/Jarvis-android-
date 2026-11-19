@@ -18,7 +18,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * PrivateAgent Accessibility Service.
+ * JARVIS Accessibility Service.
  *
  * Dumps the visible screen hierarchy for the LLM and emulates user
  * interactions (tap, swipe, scroll, type, global keys, screenshots).
@@ -211,14 +211,14 @@ class AgentAccessibilityService : AccessibilityService() {
      * affordance) into a list of maps.
      *
      * Window selection strategy, in order:
-     * 1. [rootInActiveWindow], unless it belongs to PrivateAgent itself while
+     * 1. [rootInActiveWindow], unless it belongs to JARVIS itself while
      *    another app is visibly in front (our own task never feeds the LLM —
      *    otherwise the agent reads its own transcript and gets confused).
      * 2. Otherwise the active/focused window from [windows].
-     * 3. Otherwise the first non-PrivateAgent application window.
+     * 3. Otherwise the first non-JARVIS application window.
      *
      * Our own package is only dumped as a last resort (e.g. the user runs a
-     * task that stays inside PrivateAgent).
+     * task that stays inside JARVIS).
      */
     fun dumpScreen(): List<Map<String, Any>> {
         val self = packageName
@@ -393,15 +393,21 @@ class AgentAccessibilityService : AccessibilityService() {
 
     private fun findFirstScrollable(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
         if (node == null) return null
-        if (node.isScrollable && node.isVisibleToUser) return node
+        var retained = false
         try {
+            if (node.isScrollable && node.isVisibleToUser) {
+                retained = true
+                return node
+            }
             for (i in 0 until node.childCount) {
                 val found = findFirstScrollable(node.getChild(i))
                 if (found != null) return found
             }
             return null
         } finally {
-            try { node.recycle() } catch (_: Exception) {}
+            if (!retained) {
+                try { node.recycle() } catch (_: Exception) {}
+            }
         }
     }
     // ------------------------------------------------------------------
@@ -414,7 +420,12 @@ class AgentAccessibilityService : AccessibilityService() {
      */
     fun typeText(text: String): Boolean {
         val root = rootInActiveWindow ?: return false
-        val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        val focused = try {
+            root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        } catch (error: Exception) {
+            try { root.recycle() } catch (_: Exception) {}
+            throw error
+        }
         val target: AccessibilityNodeInfo?
         if (focused != null && focused.isEditable) {
             try { root.recycle() } catch (_: Exception) {}
@@ -437,15 +448,21 @@ class AgentAccessibilityService : AccessibilityService() {
 
     private fun findFirstEditable(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
         if (node == null) return null
-        if (node.isEditable && node.isVisibleToUser && node.isEnabled) return node
+        var retained = false
         try {
+            if (node.isEditable && node.isVisibleToUser && node.isEnabled) {
+                retained = true
+                return node
+            }
             for (i in 0 until node.childCount) {
                 val found = findFirstEditable(node.getChild(i))
                 if (found != null) return found
             }
             return null
         } finally {
-            try { node.recycle() } catch (_: Exception) {}
+            if (!retained) {
+                try { node.recycle() } catch (_: Exception) {}
+            }
         }
     }
 
