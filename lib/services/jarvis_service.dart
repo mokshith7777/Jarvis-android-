@@ -821,23 +821,23 @@ class JarvisService extends ChangeNotifier {
     final worker = LocalWorkerService.instance;
     try {
       if (lower.startsWith('remember ') || lower.contains('search my memory') || lower.contains('recall my') || lower.contains('what did i')) {
-        final query = command.replaceFirst(RegExp(r'^(remember|search my memory|recall my)\\s*', caseSensitive: false), '');
+        final query = command.replaceFirst(RegExp(r'^(remember|search my memory|recall my)\s*', caseSensitive: false), '');
         final context = await index.buildContext(query.isEmpty ? command : query, limit: 8);
         _lastJarvisSpeech = context.isEmpty ? 'No matching local memories were found.' : 'I found these local memories: ' + context;
       } else if (lower.startsWith('browse ') || lower.startsWith('search the web for ') || lower.startsWith('look up ')) {
-        final query = command.replaceFirst(RegExp(r'^(browse|search the web for|look up)\\s*', caseSensitive: false), '');
+        final query = command.replaceFirst(RegExp(r'^(browse|search the web for|look up)\s*', caseSensitive: false), '');
         final result = await worker.browse(query);
         final rows = (result['results'] as List? ?? const []).take(5).map((item) => (item as Map)['title']?.toString() ?? '').where((value) => value.isNotEmpty);
         _lastJarvisSpeech = rows.isEmpty ? 'The local web search returned no readable results.' : 'Local web search results: ' + rows.join('. ');
       } else if (lower.startsWith('generate image ') || lower.startsWith('create image ')) {
-        final prompt = command.replaceFirst(RegExp(r'^(generate|create) image\\s*', caseSensitive: false), '');
+        final prompt = command.replaceFirst(RegExp(r'^(generate|create) image\s*', caseSensitive: false), '');
         final result = await worker.generateImage(prompt);
         _lastJarvisSpeech = 'Image generation completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
       } else if (lower.startsWith('edit video ')) {
         final result = await worker.editVideo(command.substring('edit video '.length).trim());
         _lastJarvisSpeech = 'Video edit completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
       } else if (lower.startsWith('create storyboard video ') || lower.startsWith('generate storyboard video ')) {
-        final prompt = command.replaceFirst(RegExp(r'^(create|generate) storyboard video\\s*', caseSensitive: false), '');
+        final prompt = command.replaceFirst(RegExp(r'^(create|generate) storyboard video\s*', caseSensitive: false), '');
         final result = await worker.generateStoryboardVideo(prompt);
         _lastJarvisSpeech = 'Storyboard video completed. Saved to ' + (result['output_path']?.toString() ?? 'the worker output folder');
       } else { return false; }

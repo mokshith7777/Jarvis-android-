@@ -26,3 +26,6 @@
 - Initial v3 test run: 68 passed, 1 failed because local-index MethodChannel calls were intentionally fire-and-forget but raised MissingPluginException in Flutter unit tests without an Android host. Correction: LocalIndexService now treats MissingPluginException and PlatformException as an unavailable native index and safely returns empty/no-op results. Android production calls still use the same native bridge.
 
 - CI analyzer recovery: removed an unused notification argument left after converting Sentry reporting to text-only motion telemetry; `flutter analyze --no-fatal-infos` treats warnings as failures.
+
+- CI workflow correction: replaced over-escaped sed grouping in version extraction with shell parameter expansion so pubspec version and build code are read reliably.
+- Voice command parsing correction: normalized raw-regex whitespace escapes in local worker triggers.
