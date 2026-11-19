@@ -3,9 +3,8 @@ import 'package:http/http.dart' as http;
 import 'settings_service.dart';
 
 class LocalWorkerService {
-  LocalWorkerService._({http.Client? client, String? baseUrlOverride})
-      : _client = client ?? http.Client(),
-        _baseUrlOverride = baseUrlOverride;
+  LocalWorkerService._({http.Client? client, this._baseUrlOverride})
+      : _client = client ?? http.Client();
 
   factory LocalWorkerService.forTesting({
     required http.Client client,
@@ -18,7 +17,8 @@ class LocalWorkerService {
   static const Duration _timeout = Duration(minutes: 20);
 
   String get baseUrl {
-    if (_baseUrlOverride != null) return _baseUrlOverride!;
+    final override = _baseUrlOverride;
+    if (override != null) return override;
     final url = SettingsService.instance.baseUrl.trim();
     if (SettingsService.instance.provider == 'jarvis_local' && url.isNotEmpty) {
       return url.replaceFirst(RegExp(r'/v1/?$'), '');
@@ -45,7 +45,7 @@ class LocalWorkerService {
   Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async {
     try {
       final response = await _client.post(
-        Uri.parse(baseUrl + path),
+        Uri.parse('$baseUrl$path'),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       ).timeout(_timeout);
@@ -62,7 +62,7 @@ class LocalWorkerService {
 
   Future<Map<String, dynamic>> health() async {
     try {
-      final response = await _client.get(Uri.parse(baseUrl + '/health'))
+      final response = await _client.get(Uri.parse('$baseUrl/health'))
           .timeout(const Duration(seconds: 5));
       final data = _decodeBody(response.body);
       if (response.statusCode < 200 || response.statusCode >= 300) {
