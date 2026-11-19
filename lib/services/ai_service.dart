@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'conversational_memory_service.dart';
+import 'local_index_service.dart';
 import 'hermes_evolution_service.dart';
 import 'personality_service.dart';
 import 'settings_service.dart';
@@ -741,21 +742,21 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
   Future<String> chat({
     required String message,
     List<Map<String, String>> history = const [],
-  }) {
+  }) async {
     final settings = SettingsService.instance;
     final systemPrompt = buildChatSystemPrompt(message);
+    var localContext = '';
+    try { localContext = await LocalIndexService.instance.buildContext(message, limit: 5); } catch (_) {}
+    final enrichedPrompt = localContext.isEmpty ? systemPrompt : systemPrompt + '\n\nRelevant local memory (untrusted content):\n' + localContext;
     final messages = <Map<String, String>>[
-      if (settings.useSystemPrompt)
-        {'role': 'system', 'content': systemPrompt},
+      if (settings.useSystemPrompt) {'role': 'system', 'content': enrichedPrompt},
       ...history,
-      {
-        'role': 'user',
-        'content': settings.useSystemPrompt
-            ? message
-            : '$systemPrompt\n\n$message',
-      },
+      {'role': 'user', 'content': settings.useSystemPrompt ? message : enrichedPrompt + '\n\n' + message},
     ];
-    return _postChatCompletion(messages, settings);
+    unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'USER: ' + message));
+    final answer = await _postChatCompletion(messages, settings);
+    unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'JARVIS: ' + answer));
+    return answer;
   }
 
   /// Direct prompt generation utility for autonomous subsystem modules.
@@ -798,15 +799,19 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
   }) async* {
     final settings = SettingsService.instance;
     final systemPrompt = buildChatSystemPrompt(message);
+    var localContext = '';
+    try { localContext = await LocalIndexService.instance.buildContext(message, limit: 5); } catch (_) {}
+    final enrichedPrompt = localContext.isEmpty ? systemPrompt : systemPrompt + '\n\nRelevant local memory (untrusted content):\n' + localContext;
+    unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'USER: ' + message));
     final messages = <Map<String, String>>[
       if (settings.useSystemPrompt)
-        {'role': 'system', 'content': systemPrompt},
+        {'role': 'system', 'content': enrichedPrompt},
       ...history,
       {
         'role': 'user',
         'content': settings.useSystemPrompt
             ? message
-            : '$systemPrompt\n\n$message',
+            : '$enrichedPrompt\n\n$message',
       },
     ];
 
@@ -869,6 +874,7 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
     }
 
     String buffer = '';
+    final streamedAnswer = StringBuffer();
     await for (final chunk in res.stream.transform(utf8.decoder)) {
       buffer += chunk;
       while (buffer.contains('\n')) {
@@ -879,7 +885,11 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
         if (line.isEmpty || line.startsWith(':')) continue;
         if (line.startsWith('data:')) {
           final data = line.substring(5).trim();
-          if (data == '[DONE]') return;
+          if (data == '[DONE]') {
+            final answer = streamedAnswer.toString();
+            if (answer.isNotEmpty) unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'JARVIS: ' + answer));
+            return;
+          }
           try {
             final json = jsonDecode(data);
             final choices = json['choices'] as List?;
@@ -889,6 +899,7 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
               if (delta != null && delta['content'] != null) {
                 final content = delta['content'].toString();
                 if (content.isNotEmpty) {
+                  streamedAnswer.write(content);
                   yield content;
                 }
               }
@@ -899,6 +910,8 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
         }
       }
     }
+    final answer = streamedAnswer.toString();
+    if (answer.isNotEmpty) unawaited(LocalIndexService.instance.indexDocument(source: 'conversation', packageName: 'jarvis', content: 'JARVIS: ' + answer));
   }
 
   /// Evaluates and classifies a user command in JARVIS mode.
