@@ -32,7 +32,6 @@ class SentryService extends ChangeNotifier {
   /// Handles incoming native sentry call dispatched by [NativeBridgeService].
   Future<void> handleNativeCall(MethodCall call) async {
     if (call.method == 'onSentryMovementDetected') {
-      final args = call.arguments as Map?;
       await _handleBreach();
     }
   }
