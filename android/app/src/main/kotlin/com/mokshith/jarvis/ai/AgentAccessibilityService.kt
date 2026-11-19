@@ -14,6 +14,8 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import io.flutter.plugin.common.MethodChannel
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * PrivateAgent Accessibility Service.
@@ -35,6 +37,7 @@ class AgentAccessibilityService : AccessibilityService() {
     }
 
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
+    private val indexExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     @Volatile private var lastSocialIndexAt = 0L
     private val socialIndexPackages = setOf(
         "com.instagram.android", "com.google.android.youtube", "com.twitter.android",
@@ -50,22 +53,38 @@ class AgentAccessibilityService : AccessibilityService() {
         val root = rootInActiveWindow ?: event.source ?: return
         val text = StringBuilder()
         fun visit(node: AccessibilityNodeInfo?, depth: Int) {
-            if (node == null || depth > 18 || text.length >= 12000) return
-            if (!node.isPassword) {
-                val value = node.text?.toString()?.trim().orEmpty()
-                val desc = node.contentDescription?.toString()?.trim().orEmpty()
-                if (value.isNotEmpty()) text.append(value).append('\n')
-                if (desc.isNotEmpty() && desc != value) text.append(desc).append('\n')
+            if (node == null) return
+            try {
+                if (depth > 18 || text.length >= 12000) return
+                if (!node.isPassword) {
+                    val value = node.text?.toString()?.trim().orEmpty()
+                    val desc = node.contentDescription?.toString()?.trim().orEmpty()
+                    if (value.isNotEmpty()) text.append(value).append('\n')
+                    if (desc.isNotEmpty() && desc != value) text.append(desc).append('\n')
+                }
+                for (i in 0 until node.childCount) {
+                    if (text.length >= 12000) break
+                    visit(node.getChild(i), depth + 1)
+                }
+            } finally {
+                try { node.recycle() } catch (_: Exception) {}
             }
-            for (i in 0 until node.childCount) visit(node.getChild(i), depth + 1)
         }
         try {
             visit(root, 0)
             val content = text.toString().trim().take(12000)
-            if (content.length >= 24) JarvisLocalIndexDb.getInstance(this)
-                .indexDocument("social_screen", pkg, content, now)
-        } catch (e: Exception) {
-            android.util.Log.w("JARVIS_INDEX", "Screen indexing failed", e)
+            if (content.length >= 24) {
+                indexExecutor.execute {
+                    try {
+                        JarvisLocalIndexDb.getInstance(applicationContext)
+                            .indexDocument("social_screen", pkg, content, now)
+                    } catch (error: Exception) {
+                        android.util.Log.w("JARVIS_INDEX", "Background screen indexing failed", error)
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            android.util.Log.w("JARVIS_INDEX", "Screen indexing failed", error)
         }
     }
 
@@ -109,24 +128,25 @@ class AgentAccessibilityService : AccessibilityService() {
         when (event.eventType) {
             AccessibilityEvent.TYPE_VIEW_CLICKED -> {
                 val node = event.source
-                val rect = Rect()
-                node?.getBoundsInScreen(rect)
-                val text = event.text?.joinToString(" ")?.trim() ?: ""
-                val desc = event.contentDescription?.toString()?.trim() ?: ""
-                val label = if (text.isNotEmpty()) text else desc
-                val viewId = node?.viewIdResourceName ?: ""
-
-                val map = mutableMapOf<String, Any>(
-                    "type" to "click",
-                    "label" to label,
-                    "x" to rect.centerX(),
-                    "y" to rect.centerY(),
-                    "package" to pkg,
-                    "viewId" to viewId,
-                    "timestamp" to System.currentTimeMillis()
-                )
-                synchronized(macroEvents) {
-                    macroEvents.add(map)
+                try {
+                    val rect = Rect()
+                    node?.getBoundsInScreen(rect)
+                    val text = event.text?.joinToString(" ")?.trim() ?: ""
+                    val desc = event.contentDescription?.toString()?.trim() ?: ""
+                    val label = if (text.isNotEmpty()) text else desc
+                    val viewId = node?.viewIdResourceName ?: ""
+                    val map = mutableMapOf<String, Any>(
+                        "type" to "click",
+                        "label" to label,
+                        "x" to rect.centerX(),
+                        "y" to rect.centerY(),
+                        "package" to pkg,
+                        "viewId" to viewId,
+                        "timestamp" to System.currentTimeMillis()
+                    )
+                    synchronized(macroEvents) { macroEvents.add(map) }
+                } finally {
+                    try { node?.recycle() } catch (_: Exception) {}
                 }
             }
             AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> {
@@ -176,6 +196,8 @@ class AgentAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         if (instance === this) instance = null
+        mainHandler.removeCallbacksAndMessages(null)
+        indexExecutor.shutdownNow()
         super.onDestroy()
     }
 
@@ -200,24 +222,32 @@ class AgentAccessibilityService : AccessibilityService() {
      */
     fun dumpScreen(): List<Map<String, Any>> {
         val self = packageName
-
         val active = rootInActiveWindow
         if (active != null && active.packageName != self) {
             return traverseAll(listOf(active))
         }
 
-        val wins = try {
-            windows?.toList() ?: emptyList()
-        } catch (_: Exception) {
-            emptyList() // windows may throw SecurityException on some OEM builds.
+        val candidates = mutableListOf<Pair<Boolean, AccessibilityNodeInfo>>()
+        try {
+            windows?.forEach { window ->
+                val root = window.root ?: return@forEach
+                candidates.add((window.isActive || window.isFocused) to root)
+            }
+        } catch (error: Exception) {
+            android.util.Log.w("JARVIS_ACCESS", "Unable to enumerate accessibility windows", error)
         }
 
-        val foreign = wins.mapNotNull { it.root }
-            .filter { it.packageName != self }
-        val focused = wins.firstOrNull { it.isActive || it.isFocused }?.root
-            ?.takeIf { it.packageName != self }
-
-        val chosen = focused ?: foreign.firstOrNull() ?: active
+        val chosen = candidates.firstOrNull { it.first && it.second.packageName != self }?.second
+            ?: candidates.firstOrNull { it.second.packageName != self }?.second
+            ?: active
+        for ((_, root) in candidates) {
+            if (root !== chosen) {
+                try { root.recycle() } catch (_: Exception) {}
+            }
+        }
+        if (active != null && active !== chosen) {
+            try { active.recycle() } catch (_: Exception) {}
+        }
         return if (chosen != null) traverseAll(listOf(chosen)) else emptyList()
     }
 
@@ -238,48 +268,35 @@ class AgentAccessibilityService : AccessibilityService() {
     ): Int {
         if (node == null) return startIndex
         var index = startIndex
-
-        val rect = Rect()
-        node.getBoundsInScreen(rect)
-
-        val text = node.text?.toString().orEmpty()
-        val desc = node.contentDescription?.toString().orEmpty()
-        val className = node.className?.toString().orEmpty()
-        val viewId = node.viewIdResourceName.orEmpty()
-
-        val interactive =
-            node.isClickable || node.isEditable || node.isScrollable ||
+        try {
+            val rect = Rect()
+            node.getBoundsInScreen(rect)
+            val text = node.text?.toString().orEmpty()
+            val desc = node.contentDescription?.toString().orEmpty()
+            val className = node.className?.toString().orEmpty()
+            val viewId = node.viewIdResourceName.orEmpty()
+            val interactive = node.isClickable || node.isEditable || node.isScrollable ||
                 node.isCheckable || node.isLongClickable
-        val hasLabel = text.isNotBlank() || desc.isNotBlank()
-        val onScreen = rect.width() > 0 && rect.height() > 0
-
-        if (node.isVisibleToUser && onScreen && (interactive || hasLabel)) {
-            out.add(
-                hashMapOf(
-                    "index" to index,
-                    "text" to text,
-                    "contentDescription" to desc,
-                    "className" to className,
-                    "viewId" to viewId,
-                    "isClickable" to node.isClickable,
-                    "isEditable" to node.isEditable,
-                    "isScrollable" to node.isScrollable,
-                    "isCheckable" to node.isCheckable,
-                    "isEnabled" to node.isEnabled,
-                    "left" to rect.left,
-                    "top" to rect.top,
-                    "right" to rect.right,
-                    "bottom" to rect.bottom,
-                    "centerX" to rect.centerX(),
-                    "centerY" to rect.centerY()
-                )
-            )
-            index++
-        }
-
-        for (i in 0 until node.childCount) {
-            val child = node.getChild(i) ?: continue
-            index = traverse(child, index, out)
+            val hasLabel = text.isNotBlank() || desc.isNotBlank()
+            val onScreen = rect.width() > 0 && rect.height() > 0
+            if (node.isVisibleToUser && onScreen && (interactive || hasLabel)) {
+                out.add(hashMapOf(
+                    "index" to index, "text" to text, "contentDescription" to desc,
+                    "className" to className, "viewId" to viewId,
+                    "isClickable" to node.isClickable, "isEditable" to node.isEditable,
+                    "isScrollable" to node.isScrollable, "isCheckable" to node.isCheckable,
+                    "isEnabled" to node.isEnabled, "left" to rect.left, "top" to rect.top,
+                    "right" to rect.right, "bottom" to rect.bottom,
+                    "centerX" to rect.centerX(), "centerY" to rect.centerY()
+                ))
+                index++
+            }
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                index = traverse(child, index, out)
+            }
+        } finally {
+            try { node.recycle() } catch (_: Exception) {}
         }
         return index
     }
@@ -325,14 +342,15 @@ class AgentAccessibilityService : AccessibilityService() {
 
         val scrollable = findFirstScrollable(rootInActiveWindow)
         if (scrollable != null) {
-            val action = if (forward) {
-                AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
-            } else {
-                AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
-            }
-            if (scrollable.performAction(action)) {
-                result.success(true)
-                return
+            try {
+                val action = if (forward) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                    else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+                if (scrollable.performAction(action)) {
+                    result.success(true)
+                    return
+                }
+            } finally {
+                try { scrollable.recycle() } catch (_: Exception) {}
             }
         }
 
@@ -376,11 +394,15 @@ class AgentAccessibilityService : AccessibilityService() {
     private fun findFirstScrollable(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
         if (node == null) return null
         if (node.isScrollable && node.isVisibleToUser) return node
-        for (i in 0 until node.childCount) {
-            val found = findFirstScrollable(node.getChild(i))
-            if (found != null) return found
+        try {
+            for (i in 0 until node.childCount) {
+                val found = findFirstScrollable(node.getChild(i))
+                if (found != null) return found
+            }
+            return null
+        } finally {
+            try { node.recycle() } catch (_: Exception) {}
         }
-        return null
     }
     // ------------------------------------------------------------------
     // Text input
@@ -392,30 +414,39 @@ class AgentAccessibilityService : AccessibilityService() {
      */
     fun typeText(text: String): Boolean {
         val root = rootInActiveWindow ?: return false
-        var target = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        if (target == null || !target.isEditable) {
-            target = findFirstEditable(root)
+        val focused = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        val target: AccessibilityNodeInfo?
+        if (focused != null && focused.isEditable) {
+            try { root.recycle() } catch (_: Exception) {}
+            target = focused
+        } else {
+            try { focused?.recycle() } catch (_: Exception) {}
+            target = findFirstEditable(root) // Consumes and recycles the root tree.
         }
         if (target == null) return false
-
-        target.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-        val args = Bundle().apply {
-            putCharSequence(
-                AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
-                text
-            )
+        return try {
+            target.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+            val args = Bundle().apply {
+                putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, text)
+            }
+            target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
+        } finally {
+            try { target.recycle() } catch (_: Exception) {}
         }
-        return target.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)
     }
 
     private fun findFirstEditable(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
         if (node == null) return null
         if (node.isEditable && node.isVisibleToUser && node.isEnabled) return node
-        for (i in 0 until node.childCount) {
-            val found = findFirstEditable(node.getChild(i))
-            if (found != null) return found
+        try {
+            for (i in 0 until node.childCount) {
+                val found = findFirstEditable(node.getChild(i))
+                if (found != null) return found
+            }
+            return null
+        } finally {
+            try { node.recycle() } catch (_: Exception) {}
         }
-        return null
     }
 
     // ------------------------------------------------------------------
@@ -439,10 +470,16 @@ class AgentAccessibilityService : AccessibilityService() {
     private fun pressImeEnter(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return false
         val root = rootInActiveWindow ?: return false
-        val target = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT) ?: return false
-        return target.performAction(
-            AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id
-        )
+        val target = try {
+            root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        } finally {
+            try { root.recycle() } catch (_: Exception) {}
+        } ?: return false
+        return try {
+            target.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id)
+        } finally {
+            try { target.recycle() } catch (_: Exception) {}
+        }
     }
 
     // ------------------------------------------------------------------
