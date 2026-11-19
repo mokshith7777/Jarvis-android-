@@ -6,7 +6,7 @@
 - **Application:** JARVIS PRO
 - **Android application ID:** `com.mokshith.jarvis.ai`
 - **Flutter package:** `jarvis_android`
-- **Current release:** `2.1.0 (210)`
+- **Current release:** `3.0.0 (300)`
 - **Primary platform:** Android
 
 > JARVIS PRO is an experimental personal assistant. It is not a system-level replacement for Android, and it cannot override Android security, permission, battery, or background-execution policies.
@@ -31,7 +31,7 @@
 
 ---
 
-## Version 2.1.0 delivery scope
+## Version 3.0.0 delivery scope
 
 This release adds:
 - **API Vault:** provider credentials migrate to Android secure storage; NVIDIA NIM, Groq, and Gemini provider presets are available.
@@ -41,7 +41,29 @@ This release adds:
 - **Microphone restart stability:** continuous recognition retries are throttled to avoid rapid recognizer restart loops.
 - **Privacy correction:** Sentry motion alerts no longer take silent camera photographs.
 
-**Not included in v2.1.0:** MediaPipe Hands camera-based tracking, Android MediaProjection screen streaming, and a dedicated persistent foreground Telegram worker. Telegram polling is still tied to the app process and Android may stop it. These features must not be considered available in this release.
+**Not included in v3.0.0:** MediaPipe Hands camera-based tracking, Android MediaProjection screen streaming, and a dedicated persistent foreground Telegram worker. Telegram polling is still tied to the app process and Android may stop it. These features must not be considered available in this release.
+
+## Version 3.0.0: Local Index AI
+
+- Default provider: `jarvis_local` at `http://127.0.0.1:9000/v1`, model `local-vision`.
+- No API key is required for local mode; cloud providers remain optional.
+- Personal memory uses Android SQLite/FTS4 and remains in app-private storage.
+- Social screen and notification indexing are OFF by default, require explicit opt-in, and use the documented app allowlist.
+- The Termux compute worker is separate from the APK and must be installed and started manually.
+
+### Termux worker setup
+
+In Termux, from the repository directory:
+
+```bash
+bash termux_worker/install_termux.sh
+export JARVIS_MODEL_PATH="$HOME/models/your-model.gguf"
+python3 termux_worker/jarvis_worker.py
+```
+
+See `termux_worker/README.md` for model and binary configuration. Model files and compiled inference engines are not bundled in the APK. The worker binds only to `127.0.0.1:9000`. Heavy image/video jobs stop the llama.cpp server before running to reduce memory pressure on 6–8 GB devices.
+
+Endpoints: `/health`, `/v1/chat/completions`, `/browse`, `/generate-image`, `/edit-video`, and `/generate-storyboard-video`.
 
 ## What JARVIS PRO does
 
@@ -138,8 +160,8 @@ The project includes an optional Telegram long-polling task interface. Only chat
 
 ### Download
 
-1. Open the [JARVIS PRO v2.1.0 GitHub Release](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v2.1.0).
-2. In **Assets**, download **JARVIS-PRO-v2.1.0.apk**.
+1. Open the [JARVIS PRO v3.0.0 GitHub Release](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.0.0).
+2. In **Assets**, download **JARVIS-PRO-v3.0.0.apk**.
 3. Wait for the download to finish. Do not rename the file while installing.
 4. Open the downloaded APK from the Android Downloads app or your file manager.
 5. If Android asks which app may install this APK, choose the browser or file manager you used and enable **Allow from this source** for that source only.
@@ -158,13 +180,13 @@ JARVIS PRO is distributed as an APK outside Google Play. Google Play Protect may
 - If Play Protect blocks or warns about the file, read the warning and make your own informed decision. Do not follow instructions that tell you to disable device security globally.
 - This project does not bypass Play Protect, Android package verification, or device security checks. No README can guarantee a warning-free installation.
 
-**Release SHA-256 (v2.1.0):**
+**Release SHA-256 (v3.0.0):**
 
 ```
 SHA-256 is published in the GitHub Release notes and verified by the Actions workflow for each build.
 ```
 
-On a computer, verify with `sha256sum JARVIS-PRO-v2.1.0.apk`. On Android, use a trusted checksum utility if you want to verify the downloaded file before installation.
+On a computer, verify with `sha256sum JARVIS-PRO-v3.0.0.apk`. On Android, use a trusted checksum utility if you want to verify the downloaded file before installation.
 
 ---
 
@@ -335,6 +357,8 @@ A Play Store release also requires compliance with current Google Play policies,
 
 The workflow at `.github/workflows/build-android.yml` runs on pushes to the configured branches when relevant source, test, Android, asset, or build files change. It can also be started manually from the repository's **Actions** tab.
 
+The workflow reads the version name and code from `pubspec.yaml` and verifies APK metadata against those values.
+
 The workflow:
 1. Checks out the source.
 2. Installs Java 17 and Flutter stable.
@@ -350,7 +374,7 @@ The workflow:
 Release artifact naming:
 
 ```
-JARVIS-PRO-v2.1.0.apk
+JARVIS-PRO-v3.0.0.apk
 ```
 
 ---
@@ -359,7 +383,7 @@ JARVIS-PRO-v2.1.0.apk
 
 Version 2.0.0 uses the Android application ID `com.mokshith.jarvis.ai`. Earlier builds used a different application ID. Android treats a changed application ID as a separate app:
 
-- Install v2.1.0 as a new app.
+- Install v3.0.0 as a new app.
 - The old app can remain installed alongside it.
 - Existing preferences and local data from the old package are not automatically migrated.
 - Export or back up any data you need before removing the previous installation.

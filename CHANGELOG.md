@@ -1,42 +1,22 @@
 # Changelog
 
-## 2.1.2 - Current-source Android release
+## 3.0.0+300
 
-### Release and build pipeline
-- Bump the Android app version to 2.1.2 / version code 212.
-- Generate the missing Gradle wrapper during CI so the repository can build without committing machine-generated wrapper files.
-- Keep Flutter dependency resolution, static analysis, tests, APK identity checks, and signature verification in the release pipeline.
-- Publish the verified `JARVIS-PRO-v2.1.2.apk` directly to GitHub Releases.
+- Defaulted to JARVIS Local Index AI at http://127.0.0.1:9000/v1 with model local-vision.
+- Added local backend host recognition for loopback, private LAN, Tailscale and .local.
+- Added native Android SQLite/FTS4 memory with 30-minute content-hash deduplication, search, stats and wipe.
+- Added explicitly opt-in, throttled social-screen and notification indexing for the allowlisted apps.
+- Added separate Termux local worker for llama.cpp, local browsing, image generation, video editing and storyboard rendering.
+- Preserved v2.1.3 microphone lifecycle, Always-On privacy migration, media audio-focus protection and Gradle 9.3.1 wrapper bootstrap.
 
-### Privacy continuity
-- Carry forward the v2.1.1 microphone privacy behavior. Always-On listening remains off by default, and voice capture requires an explicit user action unless separately enabled in Settings.
-- This is a release/build refresh of the current GitHub mainline source, not the separate v3.0.0 ZIP source.
+### Preserved fixes
+- 2a64717: native one-shot SpeechRecognizer cancel/destroy lifecycle.
+- mic_privacy_migration_v1: Always-On OFF by default; JARVIS mode alone does not start capture.
+- isMediaPlaybackActive: existing media playback suppression in MainActivity.kt retained.
+- CI wrapper: isolated Gradle 9.3.1 wrapper generation retained.
 
-
-## 2.0.0 - JARVIS PRO
-
-### Identity and platform
-- Set project creator and architect identity to Mokshith Reddy in assistant identity templates and personality responses.
-- Rename the Flutter package to `jarvis_android`.
-- Set Android application ID to `com.mokshith.jarvis.ai`.
-- Rename the visible app to JARVIS PRO.
-- Move native Kotlin sources to the matching Android package directory.
-- Migrate native MethodChannel identifiers to the JARVIS namespace.
-
-### Visual system
-- Establish an obsidian base with neon-blue and crimson/solar-orange accents.
-- Update HUD, overlay, settings, and feature dialog accents.
-
-### Brand launch and documentation
-- Add a five-second portrait-oriented animated reactor intro before the main app.
-- Refresh the adaptive launcher icon artwork with obsidian, electric-blue, crimson, and gold reactor rings.
-- Expand README with feature explanations, APK installation, Android 13+ permission setup, Accessibility guidance, troubleshooting, source builds, and security notes.
-
-### Build pipeline
-- Target version 2.0.0 / version code 200.
-- Run Flutter dependency resolution, static analysis, tests, APK build, package identity verification, and APK signature verification in GitHub Actions.
-- Publish the verified APK as `JARVIS-PRO-v2.0.0.apk`.
-
-### Compatibility and safety
-- Preserve required third-party license notices.
-- Keep sensitive Android capabilities permission-gated and user-visible.
+### Privacy
+- Social indexing is OFF by default and explicitly user-controlled.
+- Screen capture is scroll-triggered, allowlisted and throttled to 3.5 seconds.
+- Notification indexing uses the same opt-in and allowlist.
+- Indexed content is stored in app-private SQLite; clear index wipes source and FTS tables.
