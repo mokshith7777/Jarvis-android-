@@ -20,6 +20,21 @@ if [ ! -d stable-diffusion.cpp ]; then git clone --depth 1 https://github.com/le
 cmake -S stable-diffusion.cpp -B stable-diffusion.cpp/build -DCMAKE_BUILD_TYPE=Release -DSD_BUILD_EXAMPLES=ON
 cmake --build stable-diffusion.cpp/build --config Release --target sd-cli -j2
 
+install_engine() {
+  local name="$1"
+  local binary
+  binary="$(find "$HOME/src" -type f -name "$name" -perm -u+x -print -quit)"
+  if [ -z "$binary" ]; then
+    echo "ERROR: compiled $name binary was not found under $HOME/src" >&2
+    return 1
+  fi
+  install -m 755 "$binary" "$PREFIX/bin/$name"
+  echo "Installed $name -> $PREFIX/bin/$name"
+}
+install_engine llama-server
+install_engine whisper-cli
+install_engine sd-cli
+
 python -m pip install --upgrade auto-editor
 echo "Worker engines installed. Download model files separately."
 echo "Example:"
