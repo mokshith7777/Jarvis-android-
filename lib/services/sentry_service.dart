@@ -59,7 +59,11 @@ class SentryService extends ChangeNotifier {
 
   Future<bool> disarmSentry() async {
     try {
-      await _channel.invokeMethod('stopSentryMode');
+      final stopped = await _channel.invokeMethod<bool>('stopSentryMode');
+      if (stopped != true) {
+        debugPrint('[SentryService] Native stopSentryMode did not confirm shutdown; retaining armed state.');
+        return false;
+      }
     } catch (error) {
       debugPrint('[SentryService] stopSentryMode failed; retaining armed state: $error');
       return false;
