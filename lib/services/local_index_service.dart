@@ -42,8 +42,9 @@ class LocalIndexService {
 
   Future<String> buildContext(String query, {int limit = 5}) async {
     final rows = await search(query, limit: limit);
-    return rows.map((row) => '[' + (row['source'] ?? '').toString() + ' / ' +
-      (row['packageName'] ?? '').toString() + '] ' + (row['content'] ?? '').toString()).join('\n');
+    return rows.map((row) =>
+      "[${row['source'] ?? ''} / ${row['packageName'] ?? ''}] ${row['content'] ?? ''}"
+    ).join('\n');
   }
 
   Future<Map<String, dynamic>> getStats() async {
@@ -60,7 +61,9 @@ class LocalIndexService {
 
   Future<void> clear() async {
     try { await _channel.invokeMethod<void>('clearLocalIndex'); }
-    on MissingPluginException { }
+    on MissingPluginException {
+      // The Android bridge is unavailable in tests or non-Android hosts.
+    }
     on PlatformException catch (error) {
       debugPrint('[LocalIndexService] clear platform error: ${error.code}: ${error.message}');
     }
