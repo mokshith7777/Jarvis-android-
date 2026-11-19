@@ -2,7 +2,7 @@
 set -euo pipefail
 pkg update -y
 pkg upgrade -y
-pkg install -y python git cmake clang make pkg-config ffmpeg rust wget
+pkg install -y python git cmake clang make pkg-config ffmpeg rust wget coreutils findutils
 python -m pip install --upgrade pip
 python -m pip install fastapi uvicorn
 
