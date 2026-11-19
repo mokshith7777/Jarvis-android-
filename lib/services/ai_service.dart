@@ -627,9 +627,12 @@ class AiService {
   /// True for local backends (Ollama etc.) that accept any/empty API key.
   bool get _isLocalBackend {
     final settings = SettingsService.instance;
-    if (settings.provider == 'ollama' || settings.localFirstPrivacyMode) return true;
-    final host = Uri.tryParse(settings.baseUrl)?.host ?? '';
-    return host == 'localhost' || host == '127.0.0.1' || host == '[::1]';
+    final provider = settings.provider.toLowerCase();
+    if (provider == 'jarvis_local' || provider == 'ollama' || settings.localFirstPrivacyMode) return true;
+    final host = (Uri.tryParse(settings.baseUrl)?.host ?? '').toLowerCase();
+    if (host == 'localhost' || host == '127.0.0.1' || host == '::1' ||
+        host == '[::1]' || host.endsWith('.local') || host.endsWith('.ts.net')) return true;
+    return host.startsWith('192.168.') || host.startsWith('10.') || host.startsWith('100.');
   }
 
   /// The system prompt that turns a chat model into a UI automation agent.
@@ -824,7 +827,7 @@ You cannot directly tap the screen in this mode. If the user asks you to perform
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${settings.apiKey}',
+      if (settings.apiKey.isNotEmpty) 'Authorization': 'Bearer ${settings.apiKey}',
       'User-Agent':
           'Mozilla/5.0 (Linux; Android 14) '
           'AppleWebKit/537.36 (KHTML, like Gecko) '

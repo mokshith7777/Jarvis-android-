@@ -72,6 +72,11 @@ class SettingsService extends ChangeNotifier {
   /// Well-known OpenAI-compatible providers.
   static const Map<String, ({String label, String baseUrl, String model})>
   providers = {
+    'jarvis_local': (
+      label: 'JARVIS Local Index AI',
+      baseUrl: 'http://127.0.0.1:9000/v1',
+      model: 'local-vision',
+    ),
     'deepseek': (
       label: 'DeepSeek',
       baseUrl: 'https://api.deepseek.com/v1',
@@ -110,7 +115,7 @@ class SettingsService extends ChangeNotifier {
     'custom': (label: 'Custom (OpenAI-compatible)', baseUrl: '', model: ''),
   };
 
-  String get provider => _prefs?.getString('ai_provider') ?? 'deepseek';
+  String get provider => _prefs?.getString('ai_provider') ?? 'jarvis_local';
   Future<void> setProvider(String value) async {
     await _prefs?.setString('ai_provider', value);
     final preset = providers[value];
@@ -124,7 +129,7 @@ class SettingsService extends ChangeNotifier {
   String get baseUrl =>
       _prefs?.getString('ai_base_url') ??
       providers[provider]?.baseUrl ??
-      providers['deepseek']!.baseUrl;
+      providers['jarvis_local']!.baseUrl;
   Future<void> setBaseUrl(String value) async {
     await _prefs?.setString('ai_base_url', value.trim());
     notifyListeners();
@@ -145,7 +150,7 @@ class SettingsService extends ChangeNotifier {
   String get model =>
       _prefs?.getString('ai_model') ??
       providers[provider]?.model ??
-      'deepseek-chat';
+      'local-vision';
   Future<void> setModel(String value) async {
     await _prefs?.setString('ai_model', value.trim());
     notifyListeners();
@@ -323,7 +328,7 @@ class SettingsService extends ChangeNotifier {
   Future<void> setLocalFirstPrivacyMode(bool value) async {
     await _prefs?.setBool('local_first_privacy_mode', value);
     if (value) {
-      await setProvider('ollama');
+      await setProvider('jarvis_local');
       await setUseNeuralVoice(false);
     }
     notifyListeners();

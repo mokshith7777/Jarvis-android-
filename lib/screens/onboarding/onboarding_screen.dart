@@ -25,7 +25,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   int _page = 0;
   bool _serviceEnabled = false;
-  String _provider = 'deepseek';
+  String _provider = 'jarvis_local';
 
   @override
   void initState() {
@@ -338,8 +338,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       theme,
       icon: Icons.key_outlined,
       title: 'Connect an AI brain',
-      subtitle: 'Pick an OpenAI-compatible provider and paste your API key. '
-          'You can change this any time in Settings.',
+      subtitle: 'JARVIS Local Index AI is selected by default and needs no API key. '
+          'Cloud providers are optional and can be configured later in Settings.',
       children: [
         Wrap(
           spacing: 8,
@@ -357,13 +357,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           ],
         ),
         const SizedBox(height: 16),
-        if (_provider == 'ollama')
+        if (_provider == 'ollama' || _provider == 'jarvis_local')
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
-              'Ollama runs fully on your machine — no API key needed. '
-              'Start it with OLLAMA_HOST=0.0.0.0 ollama serve, then use '
-              'adb reverse tcp:11434 tcp:11434 so the phone can reach it.',
+              'Start the optional Termux worker with python3 termux_worker/jarvis_worker.py. '
+              'It exposes the local OpenAI-compatible endpoint at 127.0.0.1:9000. '
+              'Download and configure a local model separately.',
               style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant, height: 1.5),
             ),
@@ -373,14 +373,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           obscureText: true,
           onChanged: (v) => _settings.setApiKey(v),
           decoration: const InputDecoration(
-            labelText: 'API key',
-            hintText: 'sk-…',
+            labelText: 'API key (optional for local AI)',
+            hintText: 'Not required for JARVIS Local Index AI',
             prefixIcon: Icon(Icons.vpn_key_outlined),
           ),
         ),
         const SizedBox(height: 12),
         Text(
-          'The key is stored only on this device. The model can be changed '
+          'API credentials are optional for local mode and stored only on this device. The model can be changed '
           'later (default: ${_settings.model}).',
           style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant, height: 1.5),
