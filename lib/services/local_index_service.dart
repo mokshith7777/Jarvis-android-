@@ -71,7 +71,9 @@ class LocalIndexService {
 
   Future<void> setSocialIndexingEnabled(bool enabled) async {
     try { await _channel.invokeMethod<void>('setSocialIndexingEnabled', {'enabled': enabled}); }
-    on MissingPluginException { }
+    on MissingPluginException {
+      // The Android bridge is unavailable in tests or non-Android hosts.
+    }
     on PlatformException catch (error) {
       debugPrint('[LocalIndexService] setSocialIndexingEnabled platform error: ${error.code}: ${error.message}');
     }
