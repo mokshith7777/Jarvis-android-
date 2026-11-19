@@ -59,7 +59,18 @@ class SettingsService extends ChangeNotifier {
       await _prefs?.setBool('jarvis_always_on', false);
       await _prefs?.setBool('mic_privacy_migration_v1', true);
     }
-    // Ensure system prompt is enabled so models always receive the agent action grammar
+    // v3 migration: move the legacy DeepSeek default to local-first routing once.
+    // A user-selected non-DeepSeek provider is left untouched.
+    if (_prefs?.getBool('local_index_ai_provider_migration_v1') != true) {
+      final savedProvider = _prefs?.getString('ai_provider');
+      if (savedProvider == null || savedProvider == 'deepseek') {
+        await _prefs?.setString('ai_provider', 'jarvis_local');
+        await _prefs?.setString('ai_base_url', 'http://127.0.0.1:9000/v1');
+        await _prefs?.setString('ai_model', 'local-vision');
+      }
+      await _prefs?.setBool('local_index_ai_provider_migration_v1', true);
+    }
+        // Ensure system prompt is enabled so models always receive the agent action grammar
     if (_prefs?.getBool('ai_use_system_prompt') != true) {
       await _prefs?.setBool('ai_use_system_prompt', true);
     }

@@ -1294,7 +1294,7 @@ The user is viewing an article or screen on their device and requested an execut
 
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${settings.apiKey}',
+      if (settings.apiKey.isNotEmpty) 'Authorization': 'Bearer ${settings.apiKey}',
       // Some gateways sit behind Cloudflare-style bot protection that
       // rejects non-browser clients by signature (HTTP 403, "error code:
       // 1010"). Presenting a browser-like User-Agent keeps those

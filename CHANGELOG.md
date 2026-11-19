@@ -20,3 +20,7 @@
 - Screen capture is scroll-triggered, allowlisted and throttled to 3.5 seconds.
 - Notification indexing uses the same opt-in and allowlist.
 - Indexed content is stored in app-private SQLite; clear index wipes source and FTS tables.
+
+### CI recovery note
+
+- Initial v3 test run: 68 passed, 1 failed because local-index MethodChannel calls were intentionally fire-and-forget but raised MissingPluginException in Flutter unit tests without an Android host. Correction: LocalIndexService now treats MissingPluginException and PlatformException as an unavailable native index and safely returns empty/no-op results. Android production calls still use the same native bridge.
