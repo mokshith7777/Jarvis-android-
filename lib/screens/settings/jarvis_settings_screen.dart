@@ -369,7 +369,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               subtitle: const Text(
-                'Desk mode: listens silently in the background, ignores room chatter, and wakes on "Hey Jarvis"',
+                'Wake-word listening is OFF by default. Microphone access starts only after the user explicitly enables and starts voice listening.',
                 style: TextStyle(fontSize: 12),
               ),
               value: _settings.jarvisAlwaysOn,
@@ -2239,7 +2239,7 @@ class _JarvisSettingsScreenState extends State<JarvisSettingsScreen> {
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               subtitle: const Text(
-                'Forces 100% on-device AI via Ollama (127.0.0.1:11434) & offline TTS — zero data sent outside your device',
+                'Uses the separately started Termux JARVIS worker at 127.0.0.1:9000/v1 for local AI. No API key is needed; offline TTS remains on-device.',
                 style: TextStyle(fontSize: 12),
               ),
               value: _settings.localFirstPrivacyMode,
