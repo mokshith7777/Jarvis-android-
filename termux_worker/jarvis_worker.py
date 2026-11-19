@@ -62,7 +62,10 @@ def available_ram_mb():
 
 def safe_output_path(requested, default_name):
     root = OUT.resolve()
-    output = (Path(requested).expanduser() if requested else OUT / default_name).resolve()
+    candidate = Path(requested).expanduser() if requested else OUT / default_name
+    if requested and not candidate.is_absolute():
+        candidate = OUT / candidate
+    output = candidate.resolve()
     if not output.is_relative_to(root) or output == root:
         raise HTTPException(400, "Output path must remain inside the JARVIS worker output directory.")
     return output
