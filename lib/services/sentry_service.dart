@@ -23,9 +23,6 @@ class SentryService extends ChangeNotifier {
   bool _breachDetected = false;
   bool get breachDetected => _breachDetected;
 
-  String? _lastBreachPhotoBase64;
-  String? get lastBreachPhotoBase64 => _lastBreachPhotoBase64;
-
   DateTime? _lastBreachTime;
   DateTime? get lastBreachTime => _lastBreachTime;
 
@@ -45,7 +42,11 @@ class SentryService extends ChangeNotifier {
 
       if (success) {
         final msg = PersonalityService.instance.getSentryAck(arm: true);
-        await VoiceService.instance.speak(msg);
+        try {
+          await VoiceService.instance.speak(msg);
+        } catch (error) {
+          debugPrint('[SentryService] Arm acknowledgement failed: $error');
+        }
       }
       return success;
     } catch (e) {
@@ -59,15 +60,20 @@ class SentryService extends ChangeNotifier {
   Future<bool> disarmSentry() async {
     try {
       await _channel.invokeMethod('stopSentryMode');
-    } catch (e) {
-      debugPrint('[SentryService] stopSentryMode channel warning: $e');
+    } catch (error) {
+      debugPrint('[SentryService] stopSentryMode failed; retaining armed state: $error');
+      return false;
     }
     _isArmed = false;
     _breachDetected = false;
     notifyListeners();
 
     final msg = PersonalityService.instance.getSentryAck(arm: false);
-    await VoiceService.instance.speak(msg);
+    try {
+      await VoiceService.instance.speak(msg);
+    } catch (error) {
+      debugPrint('[SentryService] Disarm acknowledgement failed: $error');
+    }
     return true;
   }
 
@@ -82,7 +88,6 @@ class SentryService extends ChangeNotifier {
   Future<void> _handleBreach() async {
     if (!_isArmed) return;
     _breachDetected = true;
-    _lastBreachPhotoBase64 = null;
     _lastBreachTime = DateTime.now();
     notifyListeners();
 
@@ -90,7 +95,13 @@ class SentryService extends ChangeNotifier {
 
     // 1. Imposing vocal deterrence
     const alertSpeech = 'Security movement detected. Native motion-sensor telemetry recorded. No camera was activated.';
-    unawaited(VoiceService.instance.speak(alertSpeech));
+    unawaited(() async {
+      try {
+        await VoiceService.instance.speak(alertSpeech);
+      } catch (error) {
+        debugPrint('[SentryService] Breach voice alert failed: $error');
+      }
+    }());
 
     // 2. Dispatch a text-only motion telemetry alert to the paired Telegram terminal.
     final settings = SettingsService.instance;
@@ -102,7 +113,11 @@ class SentryService extends ChangeNotifier {
           '⏱ *Timestamp*: $timeFormatted\n'
           '🛡 *Status*: Motion-sensor telemetry logged. No camera capture.';
 
-      await TelegramService.instance.sendMessage(ownerChat, caption);
+      try {
+        await TelegramService.instance.sendMessage(ownerChat, caption);
+      } catch (error) {
+        debugPrint('[SentryService] Telegram breach alert failed: $error');
+      }
     }
   }
 }
