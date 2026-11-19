@@ -60,6 +60,13 @@ def available_ram_mb():
         pass
     return 0
 
+def safe_output_path(requested, default_name):
+    root = OUT.resolve()
+    output = (Path(requested).expanduser() if requested else OUT / default_name).resolve()
+    if not output.is_relative_to(root) or output == root:
+        raise HTTPException(400, "Output path must remain inside the JARVIS worker output directory.")
+    return output
+
 def run_cmd(args, timeout=3600):
     try:
         return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout)
@@ -187,9 +194,9 @@ def browse(body: BrowseBody):
 def generate_image(body: ImageBody):
     if not SD_MODEL or not Path(SD_MODEL).is_file():
         raise HTTPException(503, "Set SD_MODEL_PATH to a local Stable Diffusion model.")
+    output = safe_output_path(body.output_path, "image-" + str(time.time_ns()) + ".png")
     with lock:
         stop_llama()
-        output = Path(body.output_path).expanduser() if body.output_path else OUT / ("image-" + str(int(time.time())) + ".png")
         output.parent.mkdir(parents=True, exist_ok=True)
         run_cmd([SD, "-m", SD_MODEL, "-p", body.prompt, "-o", str(output)], timeout=2400)
     return {"ok": True, "output_path": str(output)}
@@ -199,23 +206,36 @@ def edit_video(body: VideoBody):
     source = Path(body.input_path).expanduser()
     if not source.is_file():
         raise HTTPException(404, "Input video does not exist. Use a Termux-visible file path.")
-    output = Path(body.output_path).expanduser() if body.output_path else OUT / ("edited-" + str(int(time.time())) + ".mp4")
+    output = safe_output_path(body.output_path, "edited-" + str(time.time_ns()) + ".mp4")
     output.parent.mkdir(parents=True, exist_ok=True)
+    stamp = str(time.time_ns())
+    temp = OUT / ("trimmed-" + stamp + ".mp4")
+    wav = OUT / ("trimmed-" + stamp + ".wav")
+    subtitle = OUT / ("trimmed-" + stamp + ".srt")
+    captions = False
     with lock:
         stop_llama()
-        temp = OUT / ("trimmed-" + str(int(time.time())) + ".mp4")
-        run_cmd([AUTO_EDITOR, str(source), "--edit", "audio:threshold=4%", "-o", str(temp)], timeout=3600)
-        subtitle = temp.with_suffix(".srt")
-        captions = False
-        if WHISPER_MODEL and Path(WHISPER_MODEL).is_file():
-            run_cmd([WHISPER, "-m", WHISPER_MODEL, "-f", str(temp), "-osrt"], timeout=1800)
-            captions = subtitle.exists()
-        vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
-        af = "loudnorm=I=-16:TP=-1.5:LRA=11"
-        if captions:
-            vf += ",subtitles=" + str(subtitle).replace(":", r"\:")
-        run_cmd([FFMPEG, "-y", "-i", str(temp), "-vf", vf, "-af", af, "-c:v", "libx264",
-                 "-preset", "ultrafast", "-c:a", "aac", "-b:a", "128k", str(output)], timeout=3600)
+        try:
+            run_cmd([AUTO_EDITOR, str(source), "--edit", "audio:threshold=4%", "-o", str(temp)], timeout=3600)
+            if WHISPER_MODEL and Path(WHISPER_MODEL).is_file():
+                run_cmd([
+                    FFMPEG, "-y", "-i", str(temp), "-vn", "-ac", "1",
+                    "-ar", "16000", "-c:a", "pcm_s16le", str(wav)
+                ], timeout=1800)
+                run_cmd([WHISPER, "-m", WHISPER_MODEL, "-f", str(wav), "-osrt"], timeout=1800)
+                captions = subtitle.is_file()
+            vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
+            af = "loudnorm=I=-16:TP=-1.5:LRA=11"
+            if captions:
+                vf += ",subtitles=" + str(subtitle).replace(":", r"\:")
+            run_cmd([FFMPEG, "-y", "-i", str(temp), "-vf", vf, "-af", af, "-c:v", "libx264",
+                     "-preset", "ultrafast", "-c:a", "aac", "-b:a", "128k", str(output)], timeout=3600)
+        finally:
+            for temporary in (temp, wav, subtitle):
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    pass
     return {"ok": True, "output_path": str(output), "captions_burned": captions,
             "aspect_ratio": "9:16", "audio_normalization": "EBU R128"}
 
