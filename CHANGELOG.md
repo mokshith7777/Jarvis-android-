@@ -29,3 +29,5 @@
 
 - CI workflow correction: replaced over-escaped sed grouping in version extraction with shell parameter expansion so pubspec version and build code are read reliably.
 - Voice command parsing correction: normalized raw-regex whitespace escapes in local worker triggers.
+
+- Termux media pipeline correction: use auto-editor's documented `-o` output flag, and run FFmpeg loudness normalization through the audio filter (`-af`), not the video filter (`-vf`). Added Python syntax validation to CI.

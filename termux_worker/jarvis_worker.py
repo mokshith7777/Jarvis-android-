@@ -204,16 +204,17 @@ def edit_video(body: VideoBody):
     with lock:
         stop_llama()
         temp = OUT / ("trimmed-" + str(int(time.time())) + ".mp4")
-        run_cmd([AUTO_EDITOR, str(source), "--edit", "audio:threshold=4%", "--export_as", "mp4", "-o", str(temp)], timeout=3600)
+        run_cmd([AUTO_EDITOR, str(source), "--edit", "audio:threshold=4%", "-o", str(temp)], timeout=3600)
         subtitle = temp.with_suffix(".srt")
         captions = False
         if WHISPER_MODEL and Path(WHISPER_MODEL).is_file():
             run_cmd([WHISPER, "-m", WHISPER_MODEL, "-f", str(temp), "-osrt"], timeout=1800)
             captions = subtitle.exists()
-        vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,loudnorm=I=-16:TP=-1.5:LRA=11"
+        vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920"
+        af = "loudnorm=I=-16:TP=-1.5:LRA=11"
         if captions:
             vf += ",subtitles=" + str(subtitle).replace(":", r"\:")
-        run_cmd([FFMPEG, "-y", "-i", str(temp), "-vf", vf, "-c:v", "libx264",
+        run_cmd([FFMPEG, "-y", "-i", str(temp), "-vf", vf, "-af", af, "-c:v", "libx264",
                  "-preset", "ultrafast", "-c:a", "aac", "-b:a", "128k", str(output)], timeout=3600)
     return {"ok": True, "output_path": str(output), "captions_burned": captions,
             "aspect_ratio": "9:16", "audio_normalization": "EBU R128"}

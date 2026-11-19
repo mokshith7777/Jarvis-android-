@@ -62,6 +62,9 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
+      - name: Validate Termux worker syntax
+        run: python3 -m py_compile termux_worker/jarvis_worker.py
+
       - name: Analyze Dart source
         run: flutter analyze --no-fatal-infos
 
