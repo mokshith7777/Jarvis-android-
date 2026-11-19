@@ -3,12 +3,15 @@ import android.app.Notification
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Captures email and SMS notifications from Gmail, Outlook, Yahoo, and native messengers
  * so J.A.R.V.I.S. can triage and read inboxes in real-time.
  */
 class InboxNotificationListenerService : NotificationListenerService() {
+    private val indexExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
     companion object {
         @Volatile
@@ -19,6 +22,8 @@ class InboxNotificationListenerService : NotificationListenerService() {
         val capturedSmsNotifications = CopyOnWriteArrayList<Map<String, Any>>()
 
         private const val MAX_SAVED = 40
+        private val emailMutationLock = Any()
+        private val smsMutationLock = Any()
 
         fun getRecentEmails(): List<Map<String, Any>> = capturedEmailNotifications.toList()
         fun getRecentSms(): List<Map<String, Any>> = capturedSmsNotifications.toList()
@@ -53,8 +58,9 @@ class InboxNotificationListenerService : NotificationListenerService() {
         val extras = sbn.notification?.extras ?: return
 
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: ""
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString() ?: ""
+        val bigText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+        val regularText = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
+        val text = bigText?.takeIf { it.isNotBlank() } ?: regularText.orEmpty()
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString() ?: ""
         val postTime = sbn.postTime
 
@@ -67,9 +73,19 @@ class InboxNotificationListenerService : NotificationListenerService() {
             "com.whatsapp", "com.linkedin.android", "org.telegram.messenger", "com.android.chrome"
         )
         if (indexEnabled && pkg in indexPackages) {
-            JarvisLocalIndexDb.getInstance(this).indexDocument(
-                "notification", pkg, listOf(title, text, subText).filter { it.isNotBlank() }.joinToString("\n"), postTime
-            )
+            val content = listOf(title, text, subText).filter { it.isNotBlank() }.joinToString("\n")
+            try {
+                indexExecutor.execute {
+                    try {
+                        JarvisLocalIndexDb.getInstance(applicationContext)
+                            .indexDocument("notification", pkg, content, postTime)
+                    } catch (error: Exception) {
+                        android.util.Log.w("JARVIS_INDEX", "Notification indexing failed", error)
+                    }
+                }
+            } catch (error: Exception) {
+                android.util.Log.w("JARVIS_INDEX", "Notification index executor unavailable", error)
+            }
         }
 
         val item = mapOf(
@@ -94,18 +110,26 @@ class InboxNotificationListenerService : NotificationListenerService() {
                 pkg == "com.samsung.android.messaging"
 
         if (isEmail) {
-            capturedEmailNotifications.removeIf { it["title"] == title && it["text"] == text }
-            capturedEmailNotifications.add(0, item)
-            if (capturedEmailNotifications.size > MAX_SAVED) {
-                capturedEmailNotifications.removeAt(capturedEmailNotifications.size - 1)
+            synchronized(emailMutationLock) {
+                capturedEmailNotifications.removeIf { it["title"] == title && it["text"] == text }
+                capturedEmailNotifications.add(0, item)
+                while (capturedEmailNotifications.size > MAX_SAVED) {
+                    capturedEmailNotifications.removeAt(capturedEmailNotifications.size - 1)
+                }
             }
         } else if (isSms) {
-            capturedSmsNotifications.removeIf { it["title"] == title && it["text"] == text }
-            capturedSmsNotifications.add(0, item)
-            if (capturedSmsNotifications.size > MAX_SAVED) {
-                capturedSmsNotifications.removeAt(capturedSmsNotifications.size - 1)
+            synchronized(smsMutationLock) {
+                capturedSmsNotifications.removeIf { it["title"] == title && it["text"] == text }
+                capturedSmsNotifications.add(0, item)
+                while (capturedSmsNotifications.size > MAX_SAVED) {
+                    capturedSmsNotifications.removeAt(capturedSmsNotifications.size - 1)
+                }
             }
         }
     }
-}
 
+    override fun onDestroy() {
+        indexExecutor.shutdownNow()
+        super.onDestroy()
+    }
+}
