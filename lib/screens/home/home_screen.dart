@@ -29,6 +29,7 @@ import '../../widgets/liquid_glass_mode_switcher.dart';
 import '../../widgets/status_chip.dart';
 import '../sessions/session_detail_screen.dart';
 import '../settings/settings_screen.dart';
+import '../connectors/connectors_screen.dart';
 
 /// Main screen: live task transcript, task input with voice, overlay toggle.
 class HomeScreen extends StatefulWidget {
@@ -158,11 +159,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Future<void> _toggleListening() async {
     if (_listening) {
       await _voice.stopListening();
+      await _voice.releaseSpeechOwner('home-mic');
       setState(() => _listening = false);
       return;
     }
     final started = await _voice.startListening(
-      continuous: false,
+      continuous: false, manual: true, owner: 'home-mic',
       onResult: (words, isFinal, candidates) {
         if (!mounted) return;
         setState(() {
@@ -401,6 +403,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
+            ListTile(leading:const Icon(Icons.hub_outlined),title:const Text('Connectors'),subtitle:const Text('Integrations and bridge health'),onTap:(){Navigator.of(context).pop();Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ConnectorsScreen()));}),
             if (_executor.isBusy)
               ListTile(
                 dense: true,
