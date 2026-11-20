@@ -109,7 +109,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (_listening) { _listening = false; _voice.releaseSpeechOwner('home-mic'); }
+    }
     if (state == AppLifecycleState.resumed) _refreshStates();
+    if (mounted) setState(() {});
   }
 
   Future<void> _refreshStates() async {
