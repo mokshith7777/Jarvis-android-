@@ -185,13 +185,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     setState(() => _listening = started);
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
-      if (_listening) { _listening = false; _voice.releaseSpeechOwner('home-mic'); }
-    }
-    if (mounted) setState(() {});
-  }
 
   Future<void> _toggleOverlay() async {
     try {
