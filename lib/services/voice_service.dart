@@ -229,7 +229,7 @@ class VoiceService {
     } catch (_) {}
   }
 
-  Future<void> releaseSpeechOwner(String owner, {bool stopIfActive = true}) async { _ownerCallbacks.remove(owner); if (_activeOwner == owner) { _activeOwner = null; if (stopIfActive) await stopListening(); } }
+  Future<void> releaseSpeechOwner(String owner, {bool stopIfActive = true}) async { _ownerCallbacks.remove(owner); if (_activeOwner == owner) { _activeOwner = _ownerCallbacks.containsKey('jarvis') ? 'jarvis' : null; if (stopIfActive) await stopListening(); } }
 
   /// Stops speech recognition immediately.
   Future<void> stopListening() async {
