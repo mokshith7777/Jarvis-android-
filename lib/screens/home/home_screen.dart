@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/task_history_entry.dart';
@@ -174,15 +175,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
     );
     if (!started && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Speech recognition unavailable — check microphone permission.',
-          ),
-        ),
-      );
+      final permanentlyDenied = _voice.lastPermissionPermanentlyDenied;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(permanentlyDenied ? 'Microphone permission is blocked.' : 'Speech recognition unavailable.'), action: permanentlyDenied ? SnackBarAction(label: 'Settings', onPressed: () { openAppSettings(); }) : null));
     }
     setState(() => _listening = started);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      if (_listening) { _listening = false; _voice.releaseSpeechOwner('home-mic'); }
+    }
+    if (mounted) setState(() {});
   }
 
   Future<void> _toggleOverlay() async {
