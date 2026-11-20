@@ -23,6 +23,10 @@ class VoiceService {
   bool _speechReady = false;
   bool _ttsReady = false;
   bool _listening = false;
+  bool lastPermissionPermanentlyDenied = false;
+  String? lastError;
+  String? _activeOwner;
+  final Map<String, void Function(String, bool, List<String>)> _ownerCallbacks = {};
   Completer<void>? _speakCompleter;
 
   final ValueNotifier<bool> isSpeaking = ValueNotifier<bool>(false);
@@ -48,7 +52,7 @@ class VoiceService {
                   .toList() ??
               (text.isNotEmpty ? [text] : <String>[]);
           if (text.isNotEmpty || candidates.isNotEmpty) {
-            onSpeechResult?.call(text, isFinal, candidates);
+            final callback = _activeOwner == null ? null : _ownerCallbacks[_activeOwner]; if (callback != null) callback(text, isFinal, candidates); else onSpeechResult?.call(text, isFinal, candidates);
           }
           break;
         case 'onSpeechStatus':
@@ -74,8 +78,7 @@ class VoiceService {
 
   Future<bool> _ensureMicPermission() async {
     try {
-      final status = await Permission.microphone.request();
-      return status.isGranted;
+      var status = await Permission.microphone.status; lastPermissionPermanentlyDenied = status.isPermanentlyDenied || status.isRestricted; if (!status.isGranted && !lastPermissionPermanentlyDenied) status = await Permission.microphone.request(); lastPermissionPermanentlyDenied = status.isPermanentlyDenied || status.isRestricted; lastError = status.isGranted ? null : 'permission_denied'; return status.isGranted;
     } catch (e) {
       debugPrint('[VoiceService] Microphone permission request failed: $e');
       return false;
@@ -83,15 +86,12 @@ class VoiceService {
   }
 
   Future<bool> initSpeech() async {
-    if (_speechReady) return true;
-    if (!await _ensureMicPermission()) return false;
+    if (!await _ensureMicPermission()) { _speechReady = false; return false; }
     try {
       final available =
           await _nativeSpeechChannel.invokeMethod<bool>('isAvailable') ?? true;
       _speechReady = available;
-    } catch (_) {
-      _speechReady = true;
-    }
+    } catch (e) { lastError = 'unavailable: $e'; _speechReady = false; }
     return _speechReady;
   }
 
@@ -199,24 +199,19 @@ class VoiceService {
     required void Function(String words, bool isFinal, List<String> candidates) onResult,
     bool continuous = true,
     bool manual = false,
+    String? owner,
   }) async {
     if (!await initSpeech()) return false;
-    onSpeechResult = onResult;
+    if (owner != null) { _activeOwner = owner; _ownerCallbacks[owner] = onResult; } else { onSpeechResult = onResult; _activeOwner = null; }
     if (_listening && continuous && !manual) {
       // Already running continuous listening loop
       return true;
     }
     try {
-      await _nativeSpeechChannel.invokeMethod('startListening', {
-        'continuous': continuous,
-        'manual': manual,
-      });
-      _listening = true;
-      listeningNotifier.value = true;
-      onListeningChanged?.call(true);
-      return true;
+      final started = await _nativeSpeechChannel.invokeMethod<bool>('startListening', {'continuous': continuous, 'manual': manual}) ?? false; _listening = started; listeningNotifier.value = started; onListeningChanged?.call(started); lastError = started ? null : 'native_start_failed'; return started;
     } catch (e) {
       debugPrint('[VoiceService] startListening error: $e');
+      lastError = e.toString();
       _listening = false;
       listeningNotifier.value = false;
       onListeningChanged?.call(false);
@@ -233,6 +228,8 @@ class VoiceService {
       });
     } catch (_) {}
   }
+
+  Future<void> releaseSpeechOwner(String owner, {bool stopIfActive = true}) async { _ownerCallbacks.remove(owner); if (_activeOwner == owner) { _activeOwner = _ownerCallbacks.containsKey('jarvis') ? 'jarvis' : null; if (stopIfActive) await stopListening(); } }
 
   /// Stops speech recognition immediately.
   Future<void> stopListening() async {

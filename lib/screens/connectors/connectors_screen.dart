@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+import '../../services/connector_hub_service.dart';
+class ConnectorsScreen extends StatefulWidget {
+ const ConnectorsScreen({super.key});
+ @override State<ConnectorsScreen> createState()=>_ConnectorsScreenState();
+}
+class _ConnectorsScreenState extends State<ConnectorsScreen> {
+ final hub=ConnectorHubService.instance;
+ final Map<String,TextEditingController> ctrls={};
+ final Map<String,bool?> health={};
+ bool loading=true;
+ @override void initState(){super.initState();_load();}
+ Future<void> _load() async {
+  for(final s in ConnectorHubService.services){ctrls[s]=TextEditingController(text:await hub.getBridgeUrl(s)??'');}
+  if(mounted){setState(()=>loading=false);}
+ }
+ @override void dispose(){for(final c in ctrls.values){c.dispose();}super.dispose();}
+ Future<void> _save(String s) async {
+  try{await hub.setBridgeUrl(s,ctrls[s]!.text);if(mounted){ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Saved locally')));}}
+  catch(e){if(mounted){ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text('$e')));}}
+ }
+ Future<void> _check(String s) async {setState(()=>health[s]=null);final ok=await hub.checkHealth(s);if(mounted){setState(()=>health[s]=ok);}}
+ @override Widget build(BuildContext context){
+  const accent=Color(0xFF5E4AE3);
+  return Scaffold(backgroundColor:const Color(0xFF050505),appBar:AppBar(backgroundColor:const Color(0xFF141522),title:const Text('JARVIS PRO • Connectors')),
+   body:loading?const Center(child:CircularProgressIndicator()):ListView(padding:const EdgeInsets.all(12),children:[
+    Container(padding:const EdgeInsets.all(12),decoration:BoxDecoration(color:const Color(0xFF141522),border:Border.all(color:accent),borderRadius:BorderRadius.circular(12)),child:const Text('Explicit-action policy: bridge URLs are stored locally and health checks are read-only. External actions require separate confirmation.',style:TextStyle(color:Colors.white70))),
+    for(final s in ConnectorHubService.services)
+     Card(color:const Color(0xFF141522),child:Padding(padding:const EdgeInsets.all(12),child:Column(children:[
+      Row(children:[Expanded(child:Text(s,style:const TextStyle(color:Colors.white,fontWeight:FontWeight.bold))),Icon(health[s]==true?Icons.check_circle:health[s]==false?Icons.error_outline:Icons.help_outline,color:health[s]==true?Colors.green:health[s]==false?Colors.orange:Colors.white38)]),
+      TextField(controller:ctrls[s],style:const TextStyle(color:Colors.white),decoration:const InputDecoration(labelText:'Bridge URL',hintText:'http://127.0.0.1:8787',labelStyle:TextStyle(color:Colors.white54))),
+      Row(children:[TextButton(onPressed:()=>_save(s),child:const Text('Save')),TextButton(onPressed:()=>_check(s),child:const Text('Health check'))])
+     ])))
+   ]));
+ }
+}

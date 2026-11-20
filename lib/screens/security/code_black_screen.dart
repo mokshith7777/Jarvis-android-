@@ -55,37 +55,26 @@ class _CodeBlackScreenState extends State<CodeBlackScreen>
   }
 
   void _listenForVoiceOverride() {
-    VoiceService.instance.onListeningChanged = (listening) {
-      if (!listening && mounted && _service.isArmed) {
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted && _service.isArmed) {
-            unawaited(VoiceService.instance.startListening(
-              continuous: true,
-              onResult: (words, isFinal, candidates) {
-                if (_service.checkVoiceDisarm(words)) {
-                  if (mounted) Navigator.of(context).pop();
-                }
-              },
-            ));
-          }
-        });
-      }
-    };
-
-    unawaited(VoiceService.instance.startListening(
-      continuous: true,
-      onResult: (words, isFinal, candidates) {
-        if (_service.checkVoiceDisarm(words)) {
-          if (mounted) Navigator.of(context).pop();
-        }
-      },
-    ));
+    VoiceService.instance.listeningNotifier.addListener(_onListeningChanged);
+    unawaited(VoiceService.instance.startListening(continuous: false, manual: true, owner: 'code-black', onResult: (words, isFinal, candidates) {
+      if (isFinal && _service.checkVoiceDisarm(words) && mounted) Navigator.of(context).pop();
+    }));
+  }
+  void _onListeningChanged() {
+    if (!VoiceService.instance.listeningNotifier.value && mounted && _service.isArmed) {
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted || !_service.isArmed) return;
+        unawaited(VoiceService.instance.startListening(continuous: false, manual: true, owner: 'code-black', onResult: (words, isFinal, candidates) {
+          if (isFinal && _service.checkVoiceDisarm(words) && mounted) Navigator.of(context).pop();
+        }));
+      });
+    }
   }
 
   @override
   void dispose() {
-    VoiceService.instance.onSpeechResult = null;
-    VoiceService.instance.onListeningChanged = null;
+    unawaited(VoiceService.instance.releaseSpeechOwner('code-black'));
+    VoiceService.instance.listeningNotifier.removeListener(_onListeningChanged);
     _glitchController.dispose();
     _flickerTimer?.cancel();
     super.dispose();

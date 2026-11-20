@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/polyglot_diplomat_service.dart';
@@ -19,6 +20,7 @@ class _PolyglotDiplomatDialogState extends State<PolyglotDiplomatDialog> {
 
   @override
   void dispose() {
+    unawaited(VoiceService.instance.releaseSpeechOwner('polyglot'));
     _textController.dispose();
     super.dispose();
   }
@@ -28,8 +30,9 @@ class _PolyglotDiplomatDialogState extends State<PolyglotDiplomatDialog> {
     HapticFeedback.mediumImpact();
 
     VoiceService.instance.startListening(
-      manual: true,
+      continuous: false, manual: true, owner: 'polyglot',
       onResult: (text, isFinal, candidates) async {
+        if (!isFinal || !mounted) return;
         setState(() => _isListening = false);
         if (text.trim().isNotEmpty) {
           _textController.text = text;

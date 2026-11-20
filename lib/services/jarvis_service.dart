@@ -420,14 +420,13 @@ class JarvisService extends ChangeNotifier {
 
   /// Called when user leaves JARVIS mode to prevent background audio captures.
   void onExitJarvisMode() {
+    final wasListening = _phase == JarvisPhase.listening || _voice.isListening;
     _isInJarvisMode = false;
     unawaited(AirGestureService.instance.stop());
     // Always-On mode listens continuously across the app like Google Assistant
     if (!isAlwaysOn) {
       _standDown();
-      if (_phase == JarvisPhase.listening) {
-        stopListening();
-      }
+      if (wasListening) stopListening();
     }
   }
 
@@ -594,6 +593,7 @@ class JarvisService extends ChangeNotifier {
     final started = await _voice.startListening(
       continuous: _shouldListenContinuously,
       manual: manual,
+      owner: 'jarvis',
       onResult: (words, isFinal, candidates) {
         _lastUserSpeech = words;
         debugPrint('[JarvisService] Heard: "$words" (candidates: $candidates, isFinal: $isFinal, isAwake: $_isAwake)');
