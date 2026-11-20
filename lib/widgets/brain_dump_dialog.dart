@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/multi_task_service.dart';
@@ -23,6 +24,7 @@ class _BrainDumpDialogState extends State<BrainDumpDialog> {
 
   @override
   void dispose() {
+    unawaited(VoiceService.instance.releaseSpeechOwner('brain-dump'));
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -33,7 +35,7 @@ class _BrainDumpDialogState extends State<BrainDumpDialog> {
     HapticFeedback.mediumImpact();
 
     VoiceService.instance.startListening(
-      manual: true,
+      continuous: false, manual: true, owner: 'brain-dump',
       onResult: (text, isFinal, candidates) {
         if (!mounted) return;
         if (text.trim().isNotEmpty) {
