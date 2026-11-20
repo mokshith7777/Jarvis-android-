@@ -146,8 +146,11 @@ class PermissionManagerService extends ChangeNotifier {
   Future<bool> requestPermission(AppPermissionType type) async {
     switch (type) {
       case AppPermissionType.microphone:
-        final status = await Permission.microphone.request();
+        var status = await Permission.microphone.status;
+        if (status.isPermanentlyDenied || status.isRestricted) { await openAppSettings(); await refresh(); return false; }
+        if (!status.isGranted) status = await Permission.microphone.request();
         await refresh();
+        if (status.isPermanentlyDenied || status.isRestricted) await openAppSettings();
         return status.isGranted;
 
       case AppPermissionType.camera:
