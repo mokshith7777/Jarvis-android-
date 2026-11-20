@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../models/chat_message.dart';
 import '../theme/app_theme.dart';
+import '../services/voice_service.dart';
 
 /// Next-Generation Liquid Glass Transcript Bubble for user / agent / system / error messages.
 class ChatBubble extends StatelessWidget {
@@ -100,6 +101,7 @@ class ChatBubble extends StatelessWidget {
                   ),
                 ),
           time: time,
+          speechText: message.text,
         );
 
       case ChatRole.system:
@@ -193,6 +195,7 @@ class ChatBubble extends StatelessWidget {
     required Widget child,
     required String time,
     Widget? header,
+    String? speechText,
   }) {
     return Align(
       alignment: alignment,
@@ -226,6 +229,7 @@ class ChatBubble extends StatelessWidget {
                 children: [
                   ?header,
                   child,
+                  if (speechText != null && speechText.trim().isNotEmpty) Align(alignment: Alignment.centerRight, child: TextButton.icon(onPressed: () { if (VoiceService.instance.isSpeaking.value) { VoiceService.instance.stopSpeaking(); } else { VoiceService.instance.speak(speechText); } }, icon: ValueListenableBuilder<bool>(valueListenable: VoiceService.instance.isSpeaking, builder: (_, speaking, __) => Icon(speaking ? Icons.stop_circle_outlined : Icons.volume_up_outlined, size: 16)), label: const Text('Read aloud / Stop', style: TextStyle(fontSize: 11)))),
                   const SizedBox(height: 4),
                   Align(
                     alignment: Alignment.bottomRight,
