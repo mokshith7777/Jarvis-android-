@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';\nimport 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'appointment_service.dart';
 import 'settings_service.dart';
@@ -18,14 +18,14 @@ class CallerAssistantService extends ChangeNotifier {
   CallerAssistantService._();
   static final CallerAssistantService instance=CallerAssistantService._();
   static const _channel=MethodChannel('com.mokshith.jarvis/accessibility');
-  bool _optedIn=false,_loading=false;
+  bool _optedIn=false,_loading=false;\n  bool _initialized=false;\n  static const _optInKey='jarvis_call_triage_opt_in_v1';\n  Future<void> init()async{if(_initialized)return;final prefs=await SharedPreferences.getInstance();_optedIn=prefs.getBool(_optInKey)??false;_initialized=true;notifyListeners();}\n
   List<CallLogEntry> _calls=[];
   bool get optedIn=>_optedIn;
   bool get loading=>_loading;
   List<CallLogEntry> get recentCalls=>List.unmodifiable(_calls);
   Future<bool> requestCallLogPermission()async{final status=await Permission.callLog.request();return status.isGranted;}
-  Future<void> setOptedIn(bool value)async{_optedIn=value;notifyListeners();}
-  Future<void> loadRecentCalls({int limit=15})async{if(!_optedIn)return;_loading=true;notifyListeners();try{final result=await _channel.invokeMethod<List<dynamic>>('getRecentCalls',{'limit':limit});_calls=(result??[]).whereType<Map>().map(CallLogEntry.fromMap).toList();}on PlatformException{_calls=[];}catch(_){_calls=[];}finally{_loading=false;notifyListeners();}}
+  Future<void> setOptedIn(bool value)async{_optedIn=value;final prefs=await SharedPreferences.getInstance();await prefs.setBool(_optInKey,value);notifyListeners();}
+  Future<void> loadRecentCalls({int limit=15})async{await init();if(!_optedIn)return;_loading=true;notifyListeners();try{final result=await _channel.invokeMethod<List<dynamic>>('getRecentCalls',{'limit':limit});_calls=(result??[]).whereType<Map>().map(CallLogEntry.fromMap).toList();}on PlatformException{_calls=[];}catch(_){_calls=[];}finally{_loading=false;notifyListeners();}}
   Future<AppointmentItem> createAppointmentFromCall(CallLogEntry call,{required String title,required DateTime scheduledAt,String notes=''})=>AppointmentService.instance.add(title:title,callerName:call.name,phoneNumber:call.number,scheduledAt:scheduledAt,notes:notes);
   String formatCallSummary(CallLogEntry call)=>'JARVIS PRO • Call follow-up draft\nCaller: '+(call.name.isEmpty?'Unknown caller':call.name)+'\nNumber: '+call.number+'\nType: '+(call.isMissed?'Missed call':'Recent call')+'\nTime: '+call.callTime.toLocal().toString()+'\nDuration: '+call.duration.toString()+' seconds';
   Future<String> sendTelegramSummary(CallLogEntry call)async{final settings=SettingsService.instance;if(settings.telegramToken.isEmpty)return 'Telegram bot token is not configured in Settings.';if(settings.telegramOwnerChatId.isEmpty)return 'Telegram owner chat ID is not configured in Settings.';final success=await TelegramService.instance.sendMessage(settings.telegramOwnerChatId,formatCallSummary(call));return success?'Call summary sent to your configured Telegram owner chat.':'Telegram send failed. Check connection and bot configuration.';}
