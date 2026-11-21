@@ -24,14 +24,14 @@ The manifest sets `android:usesCleartextTraffic="true"` to support local worker 
 Notification triage and opt-in indexing may process message snippets, screen text, and notification metadata. Keep opt-in explicit, retention bounded, source allowlisted, user-visible, and wipeable. Avoid logging message contents, screenshots, tokens, or personal information.
 
 ### Medium — GitHub Actions supply-chain hardening
-Workflow actions are now pinned to full commit SHAs with version comments. Build permissions are read-only; only the separate main-branch publishing job receives contents write permission. Keep pins updated through reviewed dependency updates and protect main.
+Workflow actions are pinned to full commit SHAs with version comments. Build permissions are read-only; only the version-tag release job receives contents write permission. The workflow does not overwrite existing release tags. Keep pins updated through reviewed dependency updates and protect main.
 
 ## Changes made during this review
 
 - Release signing no longer falls back to the Android debug key; CI produces a debug-signed installable artifact when production secrets are absent and blocks publishing in that case.
 - Home Assistant long-lived tokens now use secure storage; migration writes the secure value before deleting the legacy plaintext preference, and stale legacy copies are removed.
 - Home Assistant URLs now require HTTPS except loopback, `.local`, and private/LAN addresses; malformed URLs are handled as connection errors.
-- CI no longer commits generated assets or lockfile updates to main. Build and publishing are separated with minimal permissions; releases are tied to the tested commit.
+- CI no longer commits generated assets or lockfile updates to main. Build and publishing are separated with minimal permissions; publishing runs only for matching version tags, requires private signing secrets, and refuses to overwrite existing releases.
 - Gradle 9.3.1 wrapper scripts and JAR are committed; CI verifies and uses them instead of regenerating them.
 - Workflow actions are pinned to immutable full SHAs.
 - PR workflow remains read-only and runs analysis, tests, worker syntax validation, and an APK build.
@@ -45,7 +45,7 @@ Workflow actions are now pinned to full commit SHAs with version comments. Build
 - [ ] Harden browse URL fetches against SSRF and unsafe redirects.
 - [ ] Restrict cleartext to loopback or remove it.
 - [ ] Re-review permissions against actual features and store policies.
-- [ ] Pin workflow actions by SHA; audit dependency updates.
+- [x] Pin workflow actions by SHA (currently pinned); audit dependency updates.
 - [ ] Run a secret scan and dependency vulnerability scan; review results.
 - [ ] Test permissions, microphone lifecycle, notification opt-in, indexing wipe, and accessibility workflows on a real device.
 - [ ] Publish checksums and provenance/attestation for release artifacts.
