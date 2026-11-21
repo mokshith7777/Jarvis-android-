@@ -34,7 +34,7 @@ jobs:
       apk_signed: ${{ steps.verify.outputs.signed }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Generate launcher icons for this build
         run: |
@@ -42,12 +42,12 @@ jobs:
           python3 -m pip install --quiet pillow
           python3 .github/scripts/generate_brand_icons.py
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: "3.50.0"
           channel: stable
@@ -147,7 +147,7 @@ jobs:
           echo "APK SHA-256: $SHA256"
 
       - name: Upload verified APK artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: jarvis-pro-${{ steps.verify.outputs.version_name }}-verified-apk
           path: dist/JARVIS-PRO-v${{ steps.verify.outputs.version_name }}.apk
@@ -162,11 +162,11 @@ jobs:
       contents: write
       actions: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.sha }}
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: jarvis-pro-${{ needs.build.outputs.version_name }}-verified-apk
           path: dist
