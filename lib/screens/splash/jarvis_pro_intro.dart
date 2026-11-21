@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Five-second portrait-first brand reveal shown once at cold app launch.
+/// Five-second portrait-first JARVIS PRO reactor reveal shown once at cold app launch.
 class JarvisProIntro extends StatefulWidget {
   const JarvisProIntro({super.key, required this.child});
   final Widget child;
@@ -108,13 +108,12 @@ class _IntroCanvas extends StatelessWidget {
                           ShaderMask(
                             shaderCallback: (bounds) =>
                                 const LinearGradient(colors: [
-                                  Color(0xFF9EDBFF),
-                                  Color(0xFF1E6BFF),
-                                  Color(0xFFFF4E00),
-                                  Color(0xFFFFAE00),
+                                  Color(0xFFE8F7FF),
+                                  Color(0xFF63DFFF),
+                                  Color(0xFF9FB7D0),
                                 ]).createShader(bounds),
                             child: const Text(
-                              'JARVIS PRO',
+                              'JARVIS',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white,
@@ -125,9 +124,21 @@ class _IntroCanvas extends StatelessWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'PRO',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xFFFF315B),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 6,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
                           const SizedBox(height: 12),
                           Text(
-                            'PERSONAL AI • SYSTEMS ONLINE',
+                            'PERSONAL AI COMMAND CENTER',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: const Color(0xFF8CCBFF).withValues(alpha: .82),
@@ -246,6 +257,27 @@ class _ReactorPainter extends CustomPainter {
       ..color = cyan.withValues(alpha: .48 * pulse)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawCircle(center, radius * .29, coreGlow);
+
+    // Central metallic J monogram, aligned to the reactor core.
+    final monogram = TextPainter(
+      text: TextSpan(
+        text: 'J',
+        style: TextStyle(
+          fontFamily: 'monospace',
+          fontSize: radius * .46,
+          fontWeight: FontWeight.w900,
+          foreground: Paint()
+            ..shader = const LinearGradient(
+              colors: [Color(0xFFF4FCFF), Color(0xFF91CFFF), Color(0xFFFF315B)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ).createShader(Rect.fromCircle(center: center, radius: radius * .3)),
+          shadows: [Shadow(color: Color(0xFFFF174F), blurRadius: 18)],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    monogram.paint(canvas, center - Offset(monogram.width / 2, monogram.height / 2));
 
     final nodes = Paint()..color = gold.withValues(alpha: .95);
     for (var i = 0; i < 8; i++) {
