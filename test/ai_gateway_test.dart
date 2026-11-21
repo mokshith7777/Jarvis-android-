@@ -59,5 +59,16 @@ void main(){
    expect(service.localGatewayRunning,isFalse);
    service.dispose();
   });
+  test('stopped embedded gateway keeps direct mode available',()async{
+   SharedPreferences.setMockInitialValues({});
+   final prefs=await SharedPreferences.getInstance();
+   final service=AiGatewayService.forTesting(preferences:prefs);
+   await service.init();
+   expect(service.localGatewayRunning,isFalse);
+   expect(service.autoFallbackEnabled,isFalse);
+   await service.setAutoFallbackEnabled(false);
+   expect(service.localGatewayRunning,isFalse);
+   service.dispose();
+  });
  });
 }
