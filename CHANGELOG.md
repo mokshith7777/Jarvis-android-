@@ -2,14 +2,14 @@
 
 ## 2026-11-21 — Security review and CI publishing hardening
 
-- Fixed Gradle wrapper distribution URL parsing and verified the wrapper successfully in CI.
+- Fixed Gradle wrapper distribution URL parsing; wrapper verification passed in an earlier CI run, but the latest CI run failed on a Dart syntax error that has since been corrected.
 - CI builds are separated from publishing; GitHub Releases are created only from matching version tags with configured private signing secrets.
 - Release publishing refuses to overwrite an existing tag and includes checksum, verification, and security notice.
 - Existing v3.3.1 APK is debug-signed for testing, not a production release.
 - Home Assistant token migration removes legacy plaintext preference after secure-storage migration.
 - Home Assistant URL validator distinguishes local/private IP addresses from arbitrary hostnames; HTTP is limited to local/private targets and remote instances require HTTPS.
 - Added regression tests for URL normalization, local IPv4/IPv6, remote HTTPS, and rejection of credentials/query/fragment.
-- Added a manual workflow to append a security disclaimer to existing GitHub release notes without replacing the original notes.
+- Removed the release-note mutation workflow to avoid unnecessary automated changes to published releases.
 - Updated README and SECURITY.md publishing instructions and permissions.
 
 ## 3.3.1+331 — Cinematic branding integration
