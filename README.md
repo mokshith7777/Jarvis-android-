@@ -71,7 +71,7 @@ Suggested topics: `android`, `flutter`, `dart`, `ai-assistant`, `voice-assistant
 
 ## Links
 
-- [JARVIS Android Blueprint (cinematic project plan)](https://mokshith7777.github.io/Jarvis-android-/) *(Pages deployment pending repository Pages configuration)*\n- [Releases (APK)](https://github.com/mokshith7777/Jarvis-android-/releases)
+- [Releases (APK)](https://github.com/mokshith7777/Jarvis-android-/releases)
 - [Actions / CI](https://github.com/mokshith7777/Jarvis-android-/actions)
 - [Security report](SECURITY.md)
 - [Changelog](CHANGELOG.md)
