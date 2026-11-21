@@ -86,14 +86,13 @@ class SmartHomeService extends ChangeNotifier {
   /// Tests connectivity to the Home Assistant instance.
   Future<({bool success, String message})> checkConnection() async {
     final settings = SettingsService.instance;
-    final base = _cleanUrl(settings.homeAssistantUrl);
-    final uri = Uri.parse('$base/api/');
-
     _isConnecting = true;
     _lastError = null;
     notifyListeners();
 
     try {
+      final base = _cleanUrl(settings.homeAssistantUrl);
+      final uri = Uri.parse('$base/api/');
       final res = await _client.get(uri, headers: _headers()).timeout(
             const Duration(seconds: 5),
           );
@@ -120,10 +119,10 @@ class SmartHomeService extends ChangeNotifier {
   /// Refreshes the list of smart home entities from `/api/states`.
   Future<List<SmartDeviceEntity>> refreshEntities() async {
     final settings = SettingsService.instance;
-    final base = _cleanUrl(settings.homeAssistantUrl);
-    final uri = Uri.parse('$base/api/states');
 
     try {
+      final base = _cleanUrl(settings.homeAssistantUrl);
+      final uri = Uri.parse('$base/api/states');
       final res = await _client.get(uri, headers: _headers()).timeout(
             const Duration(seconds: 6),
           );
@@ -190,10 +189,10 @@ class SmartHomeService extends ChangeNotifier {
     required Map<String, dynamic> serviceData,
   }) async {
     final settings = SettingsService.instance;
-    final base = _cleanUrl(settings.homeAssistantUrl);
-    final uri = Uri.parse('$base/api/services/$domain/$service');
 
     try {
+      final base = _cleanUrl(settings.homeAssistantUrl);
+      final uri = Uri.parse('$base/api/services/$domain/$service');
       final res = await _client.post(
         uri,
         headers: _headers(),
