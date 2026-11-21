@@ -12,6 +12,8 @@ void main() {
       expect(normalizeHomeAssistantBaseUrl('http://10.1.2.3:8123'), 'http://10.1.2.3:8123');
       expect(normalizeHomeAssistantBaseUrl('http://172.20.2.3:8123'), 'http://172.20.2.3:8123');
       expect(normalizeHomeAssistantBaseUrl('http://192.168.0.5:8123'), 'http://192.168.0.5:8123');
+      expect(normalizeHomeAssistantBaseUrl('http://172.31.255.255:8123'), 'http://172.31.255.255:8123');
+      expect(normalizeHomeAssistantBaseUrl('http://169.254.1.10:8123'), 'http://169.254.1.10:8123');
       expect(normalizeHomeAssistantBaseUrl('http://127.0.0.1:8123'), 'http://127.0.0.1:8123');
       expect(normalizeHomeAssistantBaseUrl('http://[::1]:8123'), 'http://[::1]:8123');
       expect(normalizeHomeAssistantBaseUrl('http://[fc00::2]:8123'), 'http://[fc00::2]:8123');
@@ -22,6 +24,9 @@ void main() {
       expect(normalizeHomeAssistantBaseUrl('https://ha.example.com/'), 'https://ha.example.com');
       expect(() => normalizeHomeAssistantBaseUrl('http://ha.example.com'), throwsFormatException);
       expect(() => normalizeHomeAssistantBaseUrl('http://fc-public.example.com'), throwsFormatException);
+      expect(() => normalizeHomeAssistantBaseUrl('http://172.32.0.1:8123'), throwsFormatException);
+      expect(() => normalizeHomeAssistantBaseUrl('http://8.8.8.8:8123'), throwsFormatException);
+      expect(normalizeHomeAssistantBaseUrl('http://router.localhost:8123'), 'http://router.localhost:8123');
     });
 
     test('rejects embedded credentials, query, fragment and malformed URL', () {
