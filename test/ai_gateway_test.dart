@@ -11,6 +11,7 @@ void main(){
  group('AI gateway routing',(){
   test('uses ordered fallback after HTTP 429 and 500',()async{
    installSecureStorageMock();\n   installSecureStorageMock();
+   installSecureStorageMock();
    SharedPreferences.setMockInitialValues({});
    final prefs=await SharedPreferences.getInstance();
    var calls=0;
