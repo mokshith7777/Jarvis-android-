@@ -168,6 +168,10 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
       - uses: actions/download-artifact@v7
         with:
           name: jarvis-pro-${{ needs.build.outputs.version_name }}-verified-apk
@@ -187,6 +191,6 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
           else
-            gh release create "$TAG" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
           fi
           gh release upload "$TAG" "dist/${APK_NAME}" --clobber
