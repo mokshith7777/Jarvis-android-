@@ -57,3 +57,11 @@ Confirm APK exists, artifact uploads/downloads, valid APK/ZIP, package identity,
 
 ## Deliverables
 Commit to feature branch; include icon/adaptive assets, logo variants, splash/video/animation, app branding changes, Android resources, workflow improvements, tests, and verification report. Update Draft PR. Report commit hashes, files changed, build/test evidence, APK artifact link, checksum, package/signing/install/launch verification, and remaining issues. Never claim a check passed without evidence.
+
+## User-provided v3.3 branding source (2026-11-21)
+- Target app version: `3.3.0+330` (version bump committed separately).
+- Uploaded source video: `jarvis_pro_brand_reveal_9x16_8s.mp4`, 1080x1920, 60 FPS, 8 seconds, H.264 video + AAC audio. It contains the existing assembly, reactor ignition, J emblem, and JARVIS PRO reveal.
+- Two uploaded logo references: a full wordmark/vertical composition and a reactor-only square icon. Use the reactor-only image for launcher icon and the full composition for marketing/reference; do not distort the emblem or recreate the wordmark inaccurately.
+- A lightly enhanced copy is prepared locally at `/mnt/data/JARVIS_PRO_v3.3_Cinematic_Splash_Enhanced.mp4`; preserve the source animation, timing, camera framing, and audio. Enhancement is mild color/contrast/sharpness only.
+- Binary asset transfer into GitHub is currently blocked by the connected browser upload service being unavailable. Do not reference missing video/image files in app code or claim they are integrated. Once assets are transferred, integrate the MP4 splash and launcher icon, test Android compatibility, and verify APK.
+- Keep all commits on `feat/v3.2-gateway-caller-telegram`; never merge to main without separate explicit approval.
