@@ -50,7 +50,15 @@ class AppointmentService extends ChangeNotifier {
       '\nStatus: ' + item.status.name +
       '\nNotes: ' + (item.notes.isEmpty ? 'None' : item.notes);
   Future<String> sendTelegramSummary(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);final settings=SettingsService.instance;if(settings.telegramToken.isEmpty)return 'Telegram bot token is not configured in Settings.';if(settings.telegramOwnerChatId.isEmpty)return 'Telegram owner chat ID is not configured in Settings.';final ok=await TelegramService.instance.sendMessage(settings.telegramOwnerChatId,formatTelegramSummary(item));if(!ok)return 'Telegram message failed. Check the bot token, network, and owner chat ID.';await update(item.copyWith(telegramNotified:true));return 'Appointment summary sent to your configured Telegram owner chat.';}
-  Future<bool> exportToCalendar(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);await CalendarReminderService.instance.addItem(title:item.title,description:'Caller: '+item.callerName+'
-Phone: '+item.phoneNumber+'
-'+item.notes,dateTime:item.scheduledAt,isReminder:true);return true;}
+  Future<bool> exportToCalendar(String id) async {
+    await init();
+    final item = _items.firstWhere((x) => x.id == id);
+    await CalendarReminderService.instance.addItem(
+      title: item.title,
+      description: 'Caller: ' + item.callerName + '\nPhone: ' + item.phoneNumber + '\n' + item.notes,
+      dateTime: item.scheduledAt,
+      isReminder: true,
+    );
+    return true;
+  }
 }
