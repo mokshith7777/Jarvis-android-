@@ -12,7 +12,7 @@ JARVIS PRO combines conversational AI, voice input/output, configurable AI provi
 
 ## Download
 
-Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review the release notes and checksum before installing. Without release-signing secrets, CI creates an installable **debug APK for testing** and does not publish it as a release. Production release builds use the private signing key configured in GitHub Actions secrets.
+Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review release notes and checksums before installing. **The existing v3.3.1 release is a debug-signed testing build, not a production release.** New CI builds without signing secrets are uploaded as testing artifacts only. Signed publishing is restricted to version tags and requires a private signing key.
 
 ## Features
 
@@ -50,7 +50,7 @@ flutter test
 flutter build apk --release
 ```
 
-GitHub Actions validates Dart analysis, tests, Termux worker syntax, the committed Gradle wrapper, APK package/version identity, and signature. To publish a signed release, configure these repository secrets: `JARVIS_RELEASE_KEYSTORE_BASE64`, `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD`. Keep the keystore and passwords private; without them, CI uploads a debug APK artifact for testing only.
+GitHub Actions validates Dart analysis, tests, Termux worker syntax, the committed Gradle wrapper, APK package/version identity, and signature. To publish a new signed release, create and push a matching version tag (for example `v3.4.0`) after updating `pubspec.yaml`, and configure these repository secrets: `JARVIS_RELEASE_KEYSTORE_BASE64`, `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD`. Keep the keystore and passwords private. Without them, CI uploads a debug APK artifact for testing only; it will not publish a GitHub Release. The release job refuses to overwrite an existing release tag.
 
 ## Project status
 
@@ -62,7 +62,7 @@ GitHub Actions validates Dart analysis, tests, Termux worker syntax, the committ
 
 ## Project links
 
-- [Releases](https://github.com/mokshith7777/Jarvis-android-/releases)
+- [Releases](https://github.com/mokshith7777/Jarvis-android-/releases) (APK distribution; GitHub Packages is not used)
 - [Changelog](CHANGELOG.md)
 - [Actions](https://github.com/mokshith7777/Jarvis-android-/actions)
 - [Architecture](docs/ARCHITECTURE.md)
