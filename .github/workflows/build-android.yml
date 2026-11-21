@@ -29,6 +29,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Generate and commit v3.3 launcher icons
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 .github/scripts/generate_brand_icons.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/branding/JARVIS_PRO_v3.3_Launcher_Icon_512.png android/app/src/main/res/mipmap-*
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate JARVIS PRO v3.3 launcher icons"
+            git push origin HEAD:main
+          fi
+
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
