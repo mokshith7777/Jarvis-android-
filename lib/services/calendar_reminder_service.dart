@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';\nimport 'package:timezone/data/latest.dart' as timezone_data;\nimport 'package:timezone/timezone.dart' as tz;
 
 class CalendarItem {
   final String id;
@@ -63,7 +63,7 @@ class CalendarReminderService extends ChangeNotifier {
       FlutterLocalNotificationsPlugin();
 
   final List<CalendarItem> _items = [];
-  bool _initialized = false;
+  bool _initialized = false;\n  static bool _timezoneInitialized = false;
 
   List<CalendarItem> get items => List.unmodifiable(_items);
 
@@ -156,12 +156,14 @@ class CalendarReminderService extends ChangeNotifier {
     try {
       final notifId = item.id.hashCode & 0x7FFFFFFF;
       // Show notification on alert time
-      await _notifications.show(
+      if (!item.dateTime.isAfter(DateTime.now())) return;
+      await _notifications.zonedSchedule(
         id: notifId,
         title: item.isReminder ? 'Reminder: ${item.title}' : 'Calendar: ${item.title}',
         body: item.description.isNotEmpty
             ? item.description
             : DateFormat('h:mm a').format(item.dateTime),
+        scheduledDate: tz.TZDateTime.from(item.dateTime, tz.UTC),
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'calendar_reminders',
@@ -171,6 +173,7 @@ class CalendarReminderService extends ChangeNotifier {
             priority: Priority.high,
           ),
         ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
     } catch (_) {}
   }
