@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-21 — Security review and CI publishing hardening
+
+- Fixed Gradle wrapper distribution URL parsing and verified the wrapper successfully in CI.
+- CI builds are separated from publishing; GitHub Releases are created only from matching version tags with configured private signing secrets.
+- Release publishing refuses to overwrite an existing tag and includes checksum, verification, and security notice.
+- Existing v3.3.1 APK is debug-signed for testing, not a production release.
+- Home Assistant token migration removes legacy plaintext preference after secure-storage migration.
+- Home Assistant URL validator distinguishes local/private IP addresses from arbitrary hostnames; HTTP is limited to local/private targets and remote instances require HTTPS.
+- Added regression tests for URL normalization, local IPv4/IPv6, remote HTTPS, and rejection of credentials/query/fragment.
+- Added a manual workflow to append a security disclaimer to existing GitHub release notes without replacing the original notes.
+- Updated README and SECURITY.md publishing instructions and permissions.
+
 ## 3.3.1+331 — Cinematic branding integration
 
 - Added `video_player` and registered the `assets/branding/` directory in Flutter assets.
@@ -45,7 +57,7 @@
 - 2a64717: native one-shot SpeechRecognizer cancel/destroy lifecycle.
 - mic_privacy_migration_v1: Always-On OFF by default; JARVIS mode alone does not start capture.
 - isMediaPlaybackActive: existing media playback suppression in MainActivity.kt retained.
-- CI wrapper: isolated Gradle 9.3.1 wrapper generation retained.
+- Gradle 9.3.1 wrapper is committed in `android/gradle/wrapper/`; CI verifies it rather than regenerating wrapper files.
 
 ### Privacy
 - Social indexing is OFF by default and explicitly user-controlled.
