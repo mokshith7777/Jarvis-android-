@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';\nimport 'package:flutter_local_notifications/flutter_local_notifications.dart';\nimport 'package:timezone/data/latest.dart' as timezone_data;\nimport 'package:timezone/timezone.dart' as tz;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as timezone_data;
+import 'package:timezone/timezone.dart' as tz;
 import 'calendar_reminder_service.dart';
 import 'settings_service.dart';
 import 'telegram_service.dart';
@@ -25,7 +28,9 @@ class AppointmentService extends ChangeNotifier {
   factory AppointmentService.forTesting({SharedPreferences? preferences})=>AppointmentService._(preferences:preferences);
   static const storageKey='jarvis_appointments_v1';
   SharedPreferences? _prefs;
-  bool _loaded=false;\n  final FlutterLocalNotificationsPlugin _notifications=FlutterLocalNotificationsPlugin();\n  static bool _timezoneInitialized=false;
+  bool _loaded=false;
+  final FlutterLocalNotificationsPlugin _notifications=FlutterLocalNotificationsPlugin();
+  static bool _timezoneInitialized=false;
   final List<AppointmentItem> _items=[];
   List<AppointmentItem> get appointments=>List.unmodifiable(_items);
   Future<void> init()async{if(_loaded)return;_prefs??=await SharedPreferences.getInstance();try{await _notifications.initialize(settings:const InitializationSettings(android:AndroidInitializationSettings('@mipmap/ic_launcher')));}catch(_){}if(!_timezoneInitialized){timezone_data.initializeTimeZones();_timezoneInitialized=true;}final raw=_prefs!.getString(storageKey);if(raw!=null){try{final list=jsonDecode(raw) as List;_items.addAll(list.whereType<Map>().map((e)=>AppointmentItem.fromJson(Map<String,dynamic>.from(e))));}catch(_){}}_loaded=true;_sort();}
@@ -37,7 +42,15 @@ class AppointmentService extends ChangeNotifier {
   Future<bool> update(AppointmentItem item)async{await init();final i=_items.indexWhere((x)=>x.id==item.id);if(i<0)return false;await _cancelLocalNotification(item.id);_items[i]=item;_sort();await _save();await _scheduleLocalNotification(item);return true;}
   Future<bool> setStatus(String id,AppointmentStatus status)async{await init();final i=_items.indexWhere((x)=>x.id==id);if(i<0)return false;final item=_items[i].copyWith(status:status);_items[i]=item;await _save();if(status==AppointmentStatus.completed||status==AppointmentStatus.cancelled){await _cancelLocalNotification(id);}else{await _scheduleLocalNotification(item);}return true;}
   Future<bool> delete(String id)async{await init();final before=_items.length;_items.removeWhere((x)=>x.id==id);if(before==_items.length)return false;await _cancelLocalNotification(id);await _save();return true;}
-  String formatTelegramSummary(AppointmentItem item)=>'JARVIS PRO • Appointment\nTitle: '+item.title+'\nCaller: '+(item.callerName.isEmpty?'Unknown':item.callerName)+'\nPhone: '+(item.phoneNumber.isEmpty?'Not provided':item.phoneNumber)+'\nTime: '+item.scheduledAt.toLocal().toString()+'\nStatus: '+item.status.name+'\nNotes: '+(item.notes.isEmpty?'None':item.notes);
+  String formatTelegramSummary(AppointmentItem item)=>'JARVIS PRO • Appointment
+Title: '+item.title+'
+Caller: '+(item.callerName.isEmpty?'Unknown':item.callerName)+'
+Phone: '+(item.phoneNumber.isEmpty?'Not provided':item.phoneNumber)+'
+Time: '+item.scheduledAt.toLocal().toString()+'
+Status: '+item.status.name+'
+Notes: '+(item.notes.isEmpty?'None':item.notes);
   Future<String> sendTelegramSummary(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);final settings=SettingsService.instance;if(settings.telegramToken.isEmpty)return 'Telegram bot token is not configured in Settings.';if(settings.telegramOwnerChatId.isEmpty)return 'Telegram owner chat ID is not configured in Settings.';final ok=await TelegramService.instance.sendMessage(settings.telegramOwnerChatId,formatTelegramSummary(item));if(!ok)return 'Telegram message failed. Check the bot token, network, and owner chat ID.';await update(item.copyWith(telegramNotified:true));return 'Appointment summary sent to your configured Telegram owner chat.';}
-  Future<bool> exportToCalendar(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);await CalendarReminderService.instance.addItem(title:item.title,description:'Caller: '+item.callerName+'\nPhone: '+item.phoneNumber+'\n'+item.notes,dateTime:item.scheduledAt,isReminder:true);return true;}
+  Future<bool> exportToCalendar(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);await CalendarReminderService.instance.addItem(title:item.title,description:'Caller: '+item.callerName+'
+Phone: '+item.phoneNumber+'
+'+item.notes,dateTime:item.scheduledAt,isReminder:true);return true;}
 }
