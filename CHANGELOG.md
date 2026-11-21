@@ -5,8 +5,8 @@
 - Added `video_player` and registered the `assets/branding/` directory in Flutter assets.
 - Plays the committed cinematic splash video full-screen on launch, fades to the app on completion, and supports tap-to-skip.
 - Flutter tests bypass the video splash; initialization errors use a short static fallback.
-- CI generates legacy and adaptive launcher icon assets at all Android densities from the committed source PNG, with #050505 adaptive background, and syncs generated assets to `main`.
-- Published as GitHub Release v3.3.1. APK package/version identity and signature are checked in CI; APK signing remains debug signing for test distribution.
+- CI generates legacy and adaptive launcher icon assets at all Android densities from the committed source PNG, with #050505 adaptive background. Generated files are build-workspace-only and are not pushed back to `main`.
+- Published as GitHub Release v3.3.1. This existing release APK is debug-signed and intended for testing only, not production. CI verifies package/version identity and APK signature.
 
 ## 3.3.0+330 — Earlier source update (superseded)
 
