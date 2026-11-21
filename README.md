@@ -12,7 +12,7 @@ JARVIS PRO combines conversational AI, voice input/output, configurable AI provi
 
 ## Download
 
-Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review the release notes and checksum before installing. The current CI APK is **debug-signed** and intended for testing; it is not a production/Play Store signing build.
+Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review the release notes and checksum before installing. Without release-signing secrets, CI creates an installable **debug APK for testing** and does not publish it as a release. Production release builds use the private signing key configured in GitHub Actions secrets.
 
 ## Features
 
@@ -50,7 +50,7 @@ flutter test
 flutter build apk --release
 ```
 
-GitHub Actions validates Dart analysis, tests, Termux worker syntax, APK package/version identity, and APK signature. Builds from the release workflow are debug-signed unless a proper release signing configuration is added.
+GitHub Actions validates Dart analysis, tests, Termux worker syntax, the committed Gradle wrapper, APK package/version identity, and signature. To publish a signed release, configure these repository secrets: `JARVIS_RELEASE_KEYSTORE_BASE64`, `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD`. Keep the keystore and passwords private; without them, CI uploads a debug APK artifact for testing only.
 
 ## Project status
 
