@@ -1,16 +1,17 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:jarvis_android/services/ai_gateway_service.dart';\nimport 'test_support/secure_storage_mock.dart';
+import 'package:jarvis_android/services/ai_gateway_service.dart';
+import 'test_support/secure_storage_mock.dart';
 
 void main(){
  TestWidgetsFlutterBinding.ensureInitialized();
  group('AI gateway routing',(){
   test('uses ordered fallback after HTTP 429 and 500',()async{
-   installSecureStorageMock();\n   SharedPreferences.setMockInitialValues({});
+   installSecureStorageMock();\n   installSecureStorageMock();
+   SharedPreferences.setMockInitialValues({});
    final prefs=await SharedPreferences.getInstance();
    var calls=0;
    final service=AiGatewayService.forTesting(preferences:prefs,client:MockClient((request)async{
