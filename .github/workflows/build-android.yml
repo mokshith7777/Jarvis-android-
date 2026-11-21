@@ -13,6 +13,7 @@ on:
       - "pubspec.yaml"
       - "pubspec.lock"
       - ".github/workflows/build-android.yml"
+    tags: ["v*"]
 
 permissions:
   contents: read
@@ -156,7 +157,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && needs.build.outputs.release_signed == 'true'
+    if: startsWith(github.ref, 'refs/tags/v') && needs.build.outputs.release_signed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -180,11 +181,25 @@ jobs:
           SHA256: ${{ needs.build.outputs.sha256 }}
         run: |
           set -euo pipefail
-          TAG="v${VERSION_NAME}"
-          NOTES="JARVIS PRO ${VERSION_NAME} (version code ${VERSION_CODE}). APK is signed with the configured private release key. SHA-256: ${SHA256}. CI checks Flutter analysis, tests, package identity and APK signature."
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
-          else
-            gh release create "$TAG" --target "$GITHUB_SHA" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" != "v${VERSION_NAME}" ]]; then
+            echo "Tag $TAG does not match APK version v${VERSION_NAME}."
+            exit 1
           fi
-          gh release upload "$TAG" "dist/${APK_NAME}" --clobber
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists. Refusing to overwrite a published release."
+            exit 1
+          fi
+          NOTES="$(cat <<EOF
+          JARVIS PRO ${VERSION_NAME} (version code ${VERSION_CODE}).
+
+          SHA-256: ${SHA256}
+
+          Verification: Flutter analysis, tests, Termux worker syntax, package identity and APK signature passed in CI.
+
+          ## Security & installation notice
+          Experimental software. Review permissions and source before installing. Do not use with sensitive credentials or data. Review SECURITY.md for known risks. This APK is signed with the configured private release key.
+
+          EOF
+          )"
+          gh release create "$TAG" "dist/${APK_NAME}" --target "$GITHUB_SHA" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES"
