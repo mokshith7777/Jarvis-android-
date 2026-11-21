@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';\nimport 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
+
 import 'appointment_service.dart';
 import 'settings_service.dart';
 import 'telegram_service.dart';
@@ -23,7 +23,7 @@ class CallerAssistantService extends ChangeNotifier {
   bool get optedIn=>_optedIn;
   bool get loading=>_loading;
   List<CallLogEntry> get recentCalls=>List.unmodifiable(_calls);
-  Future<bool> requestCallLogPermission()async{final status=await Permission.callLog.request();return status.isGranted;}
+  Future<bool> requestCallLogPermission()async{try{return await _channel.invokeMethod<bool>('requestCallLogPermission')??false;}on PlatformException{return false;}}
   Future<void> setOptedIn(bool value)async{_optedIn=value;final prefs=await SharedPreferences.getInstance();await prefs.setBool(_optInKey,value);notifyListeners();}
   Future<void> loadRecentCalls({int limit=15})async{await init();if(!_optedIn)return;_loading=true;notifyListeners();try{final result=await _channel.invokeMethod<List<dynamic>>('getRecentCalls',{'limit':limit});_calls=(result??[]).whereType<Map>().map(CallLogEntry.fromMap).toList();}on PlatformException{_calls=[];}catch(_){_calls=[];}finally{_loading=false;notifyListeners();}}
   Future<AppointmentItem> createAppointmentFromCall(CallLogEntry call,{required String title,required DateTime scheduledAt,String notes=''})=>AppointmentService.instance.add(title:title,callerName:call.name,phoneNumber:call.number,scheduledAt:scheduledAt,notes:notes);
