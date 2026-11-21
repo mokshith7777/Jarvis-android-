@@ -22,10 +22,35 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val keystorePath = System.getenv("JARVIS_RELEASE_KEYSTORE_PATH")
+            val storePassword = System.getenv("JARVIS_RELEASE_STORE_PASSWORD")
+            val keyAlias = System.getenv("JARVIS_RELEASE_KEY_ALIAS")
+            val keyPassword = System.getenv("JARVIS_RELEASE_KEY_PASSWORD")
+            if (!keystorePath.isNullOrBlank() &&
+                !storePassword.isNullOrBlank() &&
+                !keyAlias.isNullOrBlank() &&
+                !keyPassword.isNullOrBlank()
+            ) {
+                storeFile = file(keystorePath)
+                this.storePassword = storePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // CI debug signature is for test distribution only; configure a private upload key for Play.
-            signingConfig = signingConfigs.getByName("debug")
+            // Never sign release builds with Android's debug key. If the private
+            // signing secrets are absent, produce an unsigned artifact for CI only.
+            val releaseSigning = signingConfigs.getByName("release")
+            if (releaseSigning.storeFile != null) {
+                signingConfig = releaseSigning
+            } else {
+                signingConfig = null
+            }
         }
     }
 }
