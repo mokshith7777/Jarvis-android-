@@ -1,41 +1,47 @@
 # JARVIS PRO
 
-**Android-first personal AI assistant** built with Flutter and native Android integrations.
+**Android-first personal AI assistant** built with Flutter, Dart, and native Android integrations.
 
 - **Package ID:** `com.mokshith.jarvis.ai`
-- **Current public release:** v3.3.1 (pending CI verification)
-- **Current main source version:** `3.3.1+331` (cinematic splash + launcher branding integration)
-- **Platform:** Android
-- **Build:** Flutter / Dart + native Android
+- **Latest public release:** [v3.3.1](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.3.1)
+- **Source version:** `3.3.1+331`
+- **Platform:** Android (API 26+)
+- **Stack:** Flutter/Dart + Kotlin + optional Termux local worker
 
-> Experimental personal assistant. It does not bypass Android permissions, security policies, or background execution limits.
+JARVIS PRO combines conversational AI, voice input/output, configurable AI providers, user-approved Android workflows, and optional local AI tooling. It is experimental software; capabilities depend on Android version, permissions, device hardware, installed apps, and configured providers.
 
 ## Download
-Use the [GitHub Releases page](https://github.com/mokshith7777/Jarvis-android-/releases) for public, versioned APK downloads. Only releases listed there are public releases.
 
-The v3.3.1 source integrates the cinematic splash video and launcher icon generation. Release publication depends on CI verification.
+Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review the release notes and checksum before installing. The current CI APK is **debug-signed** and intended for testing; it is not a production/Play Store signing build.
 
-## Highlights
-- Chat, voice input and text-to-speech modes.
-- User-controlled task workflows and Android integrations.
-- Local-first AI configuration with optional cloud providers.
-- Provider routing/fallback and local gateway development in v3.2 branch.
-- Local appointments and opt-in call metadata workflows in v3.2 development.
-- Telegram integration with explicit user configuration/confirmation.
-- Termux worker is a separate optional setup; it is not bundled with the APK.
+## Features
 
-Features depend on Android version, permissions, installed apps, provider configuration, and device capabilities.
+- Chat, voice input, and text-to-speech.
+- Local-first configuration with optional hosted AI providers and local model endpoints.
+- Optional Termux worker for local inference and media tools; installed and started separately.
+- User-triggered Android app and screen workflows through the accessibility service.
+- Local task history, preferences, and optional indexing.
+- Telegram bot integration when explicitly configured and paired with authorized chat IDs.
+- Cinematic intro and branded launcher assets.
 
-## Privacy & safety
+Feature availability is conditional. Sensitive features require user permission or explicit enablement; no permission is silently bypassed.
+
+## Privacy and permissions
+
+JARVIS may request sensitive Android permissions for specific features, including microphone, camera, contacts, SMS, notifications, accessibility, overlay, storage, app visibility, and usage access. Review each permission prompt and only enable features you need.
+
 - Always-on microphone listening is OFF by default.
-- Entering JARVIS mode alone does not start microphone capture.
-- Sensitive Android permissions are requested by features that need them.
-- Call triage is permission-gated and uses metadata; it does not access call audio.
-- Telegram actions require explicit configuration and confirmation; no automatic message sending.
-- Local indexing features are opt-in where applicable.
+- Social/notification indexing is opt-in and uses an allowlist.
+- Screen automation is user-driven and can interact with visible app UI.
+- Telegram actions require local bot configuration and authorized chat IDs.
+- Local index data is stored in app-private SQLite and can be cleared from the app.
+- Local Termux worker is intended to bind to loopback; see its documentation and the security notes.
+
+Read [SECURITY.md](SECURITY.md) before installing or exposing any local endpoints.
 
 ## Build from source
-Prerequisites: Flutter SDK matching the Dart constraint in `pubspec.yaml`, Java/Android SDK, and Android build tools.
+
+Prerequisites: Flutter SDK matching `pubspec.yaml`, Java 17, Android SDK/build tools, and Python for the Termux worker checks.
 
 ```bash
 flutter pub get
@@ -44,22 +50,24 @@ flutter test
 flutter build apk --release
 ```
 
-CI also validates Termux worker syntax and checks APK identity/signature before uploading an artifact.
+GitHub Actions validates Dart analysis, tests, Termux worker syntax, APK package/version identity, and APK signature. Builds from the release workflow are debug-signed unless a proper release signing configuration is added.
 
 ## Project status
+
 | Version | Status |
 |---|---|
-| 3.1.0 | Latest public GitHub release |
-| 3.2.0 | Development branch / Draft PR #5 |
-| 3.3.0+330 | Main source version bumped and vector splash branding refreshed. Cinematic MP4 and uploaded launcher PNG are still pending repository integration. |
+| 3.3.1+331 | Public release: cinematic splash video + launcher branding integration |
+| 3.3.0+330 | Earlier source iteration |
+| 3.2.0+320 | Development branch work: provider routing, local-first appointments, and opt-in metadata workflows |
 
-## Releases & changelog
-- [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases)
-- [CHANGELOG](CHANGELOG.md)
-- [CI builds](https://github.com/mokshith7777/Jarvis-android-/actions)
+## Project links
 
-## Security
-Do not commit API keys, tokens, private signing keys, personal data, or secrets. Use local secure storage or GitHub Actions secrets where appropriate. CI artifacts may use debug signing and are not automatically production-ready.
+- [Releases](https://github.com/mokshith7777/Jarvis-android-/releases)
+- [Changelog](CHANGELOG.md)
+- [Actions](https://github.com/mokshith7777/Jarvis-android-/actions)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Issues](https://github.com/mokshith7777/Jarvis-android-/issues)
 
-## Contributing / reporting issues
-Use [Issues](https://github.com/mokshith7777/Jarvis-android-/issues) for bugs and feature requests. Development changes are reviewed through pull requests; check PR status before treating development versions as stable.
+## License
+
+MIT. See [LICENSE](LICENSE).
