@@ -2,8 +2,6 @@ name: JARVIS PRO Android Release
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main, jarvis-pro-v2]
   push:
     branches: [main, jarvis-pro-v2, 'fix/**']
     paths:
@@ -39,8 +37,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add assets/branding/JARVIS_PRO_v3.3_Launcher_Icon_512.png android/app/src/main/res/mipmap-*
           if ! git diff --cached --quiet; then
-            git commit -m "Generate JARVIS PRO v3.3 launcher icons"
-            git push origin HEAD:main
+            if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+              git commit -m "Generate JARVIS PRO v3.3 launcher icons"
+              git push origin HEAD:main
+            else
+              echo "Non-main build: generated icons stay in the CI workspace; no repository write."
+            fi
           fi
 
       - uses: actions/setup-java@v5
@@ -86,8 +88,12 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pubspec.lock
           if ! git diff --cached --quiet; then
-            git commit -m "Sync Flutter dependency lockfile"
-            git push origin HEAD:main
+            if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+              git commit -m "Sync Flutter dependency lockfile"
+              git push origin HEAD:main
+            else
+              echo "Non-main build: lockfile changes stay in the CI workspace; no repository write."
+            fi
           fi
 
       - name: Validate Termux worker syntax
@@ -144,7 +150,7 @@ jobs:
           retention-days: 30
 
       - name: Publish APK to GitHub Releases
-        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
