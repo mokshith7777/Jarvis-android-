@@ -10,7 +10,7 @@ class _CallerAssistantScreenState extends State<CallerAssistantScreen> with Sing
  final appointments=AppointmentService.instance;
  final calls=CallerAssistantService.instance;
  late final TabController tabs;
- @override void initState(){super.initState();tabs=TabController(length:2,vsync:this);appointments.init();}
+ @override void initState(){super.initState();tabs=TabController(length:2,vsync:this);appointments.init();calls.init();}
  @override void dispose(){tabs.dispose();super.dispose();}
  Future<void> _edit({AppointmentItem? existing,CallLogEntry? call})async{
   final title=TextEditingController(text:existing?.title??(call==null?'':'Call follow-up'));
