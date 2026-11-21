@@ -73,7 +73,11 @@ class AiGatewayService extends ChangeNotifier {
         s.lastLatency=DateTime.now().difference(start);if(response.statusCode<200||response.statusCode>=300){final body=response.body;final snippet=body.length>250?body.substring(0,250):body;throw AiGatewayException('HTTP '+response.statusCode.toString()+': '+snippet,statusCode:response.statusCode);}
         final decoded=jsonDecode(utf8.decode(response.bodyBytes));final choices=decoded is Map?decoded['choices']:null;if(choices is! List||choices.isEmpty)throw const AiGatewayException('No choices in response');
         final firstChoice=choices.first;
-        final content=firstChoice is Map?firstChoice['message']?['content']:null;
+        dynamic content;
+        if (firstChoice is Map) {
+          final message = firstChoice['message'];
+          if (message is Map) content = message['content'];
+        }
         if(content is String&&content.trim().isNotEmpty){s.consecutiveFailures=0;s.cooldownUntil=null;_lastProvider=p.id;notifyListeners();return content;}
         if(content is List){final joined=content.map((x)=>x is Map?(x['text']??'').toString():x.toString()).join();if(joined.trim().isNotEmpty){s.consecutiveFailures=0;s.cooldownUntil=null;_lastProvider=p.id;notifyListeners();return joined;}}
         throw const AiGatewayException('Empty assistant content');
