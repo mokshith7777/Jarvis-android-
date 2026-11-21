@@ -1,0 +1,39 @@
+name: Append security notice to existing releases
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Append disclaimer without replacing existing release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          NOTICE_MARKER="### Security & installation notice"
+          NOTICE="$(cat <<'EOF'
+          ### Security & installation notice
+
+          JARVIS PRO is experimental. Review source code, requested permissions, and the [Security Policy](https://github.com/mokshith7777/Jarvis-android-/blob/main/SECURITY.md) before installing. Existing CI APKs signed with the Android debug key are testing builds, not production releases. Do not use them with sensitive credentials or data.
+          EOF
+          )"
+
+          gh release list --repo "$REPOSITORY" --limit 100 --json tagName --jq '.[].tagName' > /tmp/release-tags.txt
+          while IFS= read -r tag; do
+            [[ -n "$tag" ]] || continue
+            body="$(gh release view "$tag" --repo "$REPOSITORY" --json body --jq '.body // ""')"
+            if [[ "$body" == *"$NOTICE_MARKER"* ]]; then
+              echo "Already updated: $tag"
+              continue
+            fi
+            printf '%s\n\n%s\n' "$body" "$NOTICE" > /tmp/release-notes.txt
+            gh release edit "$tag" --repo "$REPOSITORY" --notes-file /tmp/release-notes.txt
+            echo "Updated: $tag"
+          done < /tmp/release-tags.txt
