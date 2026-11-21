@@ -146,6 +146,28 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Secure per-provider API key storage. Keys never enter SharedPreferences.
+  Future<String> getProviderApiKey(String providerId) async {
+    if (providerId == provider) return apiKey;
+    return await _vault.read(key: 'ai_api_key_provider_$providerId') ?? '';
+  }
+
+  Future<void> setProviderApiKey(String providerId, String value) async {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      await _vault.delete(key: 'ai_api_key_provider_$providerId');
+    } else {
+      await _vault.write(key: 'ai_api_key_provider_$providerId', value: trimmed);
+    }
+    notifyListeners();
+  }
+
+  bool get aiGatewayEnabled => _prefs?.getBool('ai_gateway_enabled') ?? false;
+  Future<void> setAiGatewayEnabled(bool value) async {
+    await _prefs?.setBool('ai_gateway_enabled', value);
+    notifyListeners();
+  }
+
   String get apiKey => _apiKeyCache;
   Future<void> setApiKey(String value) async {
     _apiKeyCache = value.trim();
