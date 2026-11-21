@@ -163,27 +163,31 @@ class _FallbackSplash extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: const Color(0xFF050505),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.bolt, color: Color(0xFF00E5FF), size: 64),
-              SizedBox(height: 16),
-              Text(
-                'JARVIS PRO',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 3,
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onSkip,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.bolt, color: Color(0xFF00E5FF), size: 64),
+                SizedBox(height: 16),
+                Text(
+                  'JARVIS PRO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 3,
+                  ),
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'PERSONAL AI COMMAND CENTER',
-                style: TextStyle(color: Colors.white70, letterSpacing: 2),
-              ),
-            ],
+                SizedBox(height: 8),
+                Text(
+                  'PERSONAL AI COMMAND CENTER',
+                  style: TextStyle(color: Colors.white70, letterSpacing: 2),
+                ),
+              ],
+            ),
           ),
         ),
       );
