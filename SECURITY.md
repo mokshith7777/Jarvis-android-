@@ -1,52 +1,86 @@
-# Security review and publishing checklist
+# JARVIS PRO security report
 
-Review date: 2026-11-21  
-Scope: public repository configuration, GitHub Actions workflows, Flutter/native Android permissions, Termux worker routes, and selected storage/notification/automation code. This is a source review, not a penetration test, device test, or exhaustive secret scan.
+**Review date:** 2026-11-21  
+**Review type:** Repository/source/configuration review. Not a penetration test, independent audit, device test, or security certification.
 
-## Findings
+## Executive status
 
-### High — Release signing must use a private key
-Release builds no longer use the Android debug signing key. CI creates an installable debug APK when release signing secrets are absent and does not publish it to Releases. Release publishing is gated on a configured private key. Configure the protected secrets `JARVIS_RELEASE_KEYSTORE_BASE64` (base64-encoded keystore), `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD` before publishing. Never commit the keystore or passwords. Keep a protected backup and document key rotation.
+This repository is public. Anyone can read, fork, copy, modify, and reproduce its source. A public repository cannot prevent replication. If exclusivity is required, the repository and source distribution must be private; a public release APK may still be reverse-engineered. This repository has not been made private by this review.
 
-### High — Termux worker endpoints have no authentication
-The worker binds to `127.0.0.1`, which prevents remote network access by default, but localhost is shared by apps on Android. The POST routes can trigger local inference, image/video processing, and browsing. The video-edit endpoint accepts an input path readable by the Termux user. Treat this worker as trusted local software only; do not bind it to `0.0.0.0` or expose it through a tunnel/port-forward. Add a pairing secret or another caller-authentication mechanism before treating it as hardened.
+No security review can promise “zero security errors.” This report records known risks and the changes made; unresolved risks remain.
 
-### High — Browser-fetch route has partial SSRF mitigation, not a complete guarantee
-The worker's `/browse` route fetches search-result URLs. The code now rejects credentialed/non-HTTP URLs and validates resolved addresses as public, including redirects. This reduces SSRF risk, but DNS validation and the later connection are not pinned to the same address (DNS-rebinding race), so this is not a complete SSRF defense. Do not expose the worker to untrusted callers.
+## Review scope and checks
 
-### High — Broad Android permission surface
-The manifest requests permissions including microphone, camera, contacts, SMS, notification access, accessibility/window content, overlays, all-files access, app visibility, usage stats, and Shizuku integration. These permissions are sensitive and feature-dependent. The app must keep permissions opt-in, explain the data/action involved, minimize collection, and provide disable/clear controls. Publishing through Play Store would require a separate policy and permission eligibility review.
+Reviewed the recent security/CI commits, README, workflow configuration, Android manifest/build signing configuration, Home Assistant settings and URL validation, Termux worker, and selected configuration files.
 
-### Medium — Cleartext networking is globally enabled
-The manifest sets `android:usesCleartextTraffic="true"` to support local worker HTTP endpoints. This permits cleartext traffic beyond loopback unless additional network-security restrictions are configured. Prefer HTTPS for cloud endpoints and a network security config narrowly permitting local traffic only. Verify all provider endpoints and local URLs before shipping.
+A limited pattern scan was performed on 15 high-risk text/config files in the current main-branch snapshot for common private-key, GitHub token, Google API key, Telegram token, AWS key, and credentialed-URL patterns. **No matches were found in those files.** This is not a full repository scan, does not scan every tracked file, does not scan all commit history, and cannot detect every credential format.
 
-### Medium — Notification/screen content can be sensitive
-Notification triage and opt-in indexing may process message snippets, screen text, and notification metadata. Keep opt-in explicit, retention bounded, source allowlisted, user-visible, and wipeable. Avoid logging message contents, screenshots, tokens, or personal information.
+## Findings and status
 
-### Medium — GitHub Actions supply-chain hardening
-Workflow actions are pinned to full commit SHAs with version comments. Build permissions are read-only; only the version-tag release job receives contents write permission. The workflow does not overwrite existing release tags. Keep pins updated through reviewed dependency updates and protect main.
+### High: Release signing and release provenance
+**Status:** Mitigated in CI configuration, but production setup remains pending.
 
-## Changes made during this review
+- Release builds do not fall back to the Android debug signing key.
+- CI can build a debug-signed testing APK when the private release key is not configured; that artifact must not be treated as production.
+- Publishing is tag-based, requires signing secrets, checks the tag against the app version, and refuses to overwrite an existing release.
+- Existing public v3.3.1 APK is debug-signed and for testing only.
+- Configure private signing material only in protected repository secrets; never commit keystore files or passwords.
 
-- Release signing no longer falls back to the Android debug key; CI produces a debug-signed installable artifact when production secrets are absent and blocks publishing in that case.
-- Home Assistant long-lived tokens now use secure storage; migration writes the secure value before deleting the legacy plaintext preference, and stale legacy copies are removed.
-- Home Assistant URLs now require HTTPS except loopback, `.local`, and private/LAN addresses; malformed URLs are handled as connection errors.
-- CI no longer commits generated assets or lockfile updates to main. Build and publishing are separated with minimal permissions; publishing runs only for matching version tags, requires private signing secrets, and refuses to overwrite existing releases.
-- Gradle 9.3.1 wrapper scripts and JAR are committed; CI verifies and uses them instead of regenerating them.
-- Workflow actions are pinned to immutable full SHAs.
-- PR workflow remains read-only and runs analysis, tests, worker syntax validation, and an APK build.
-- Termux worker browser-fetch now checks URL scheme/credentials, rejects non-public resolved IPs, and revalidates redirects; DNS-rebinding risk remains.
+### High: Termux worker caller authentication
+**Status:** Open.
 
-## Before production release
+The worker is designed to bind to loopback, but Android localhost is not a security boundary between apps. Endpoints can trigger local operations. Do not expose it on all interfaces, through tunnels, or to untrusted callers. Pairing/authentication and request validation are still needed.
 
-- [ ] Configure protected main branch and required reviews/checks.
-- [ ] Add the four protected release-signing secrets and verify the release certificate fingerprint.
-- [ ] Authenticate Termux worker requests and validate caller/pairing.
-- [ ] Harden browse URL fetches against SSRF and unsafe redirects.
-- [ ] Restrict cleartext to loopback or remove it.
-- [ ] Re-review permissions against actual features and store policies.
-- [x] Pin workflow actions by SHA (currently pinned); audit dependency updates.
-- [ ] Run a secret scan and dependency vulnerability scan; review results.
-- [ ] Test permissions, microphone lifecycle, notification opt-in, indexing wipe, and accessibility workflows on a real device.
-- [ ] Publish checksums and provenance/attestation for release artifacts.
+### High: Browser-fetch SSRF/DNS rebinding
+**Status:** Partially mitigated, open.
 
+The browser-fetch code checks schemes/credentials and rejects non-public resolved addresses, and redirects are rechecked. DNS resolution and the eventual connection are not pinned to the same address, so rebinding remains possible. Do not expose the worker to untrusted callers.
+
+### High: Sensitive Android permissions
+**Status:** Open for product/policy review.
+
+The app requests sensitive permissions for optional features, including microphone, camera, contacts, SMS, notifications, accessibility, overlays, storage, app visibility, usage access, and Shizuku. Keep them opt-in, explain data/actions, minimize access, and test revocation. Play Store eligibility requires a separate policy review.
+
+### Medium: Cleartext networking
+**Status:** Open.
+
+The manifest globally enables cleartext networking to support local worker use. This can permit HTTP outside localhost. Prefer HTTPS for remote endpoints and a narrow Android network-security configuration for any necessary local exceptions.
+
+### Medium: Local and cloud data handling
+**Status:** Open review item.
+
+Screen/notification indexing, connectors, and configured AI providers may handle sensitive data. Avoid sending private data to providers without reviewing their terms. Do not log secrets, messages, screenshots, or personal data. Review retention, deletion, and opt-in behavior on-device.
+
+### Medium: CI and supply chain
+**Status:** Improved, continue maintenance.
+
+Workflow actions are pinned to immutable SHAs and jobs use limited permissions. The build/test workflow is not a substitute for dependency review, signed provenance, or protected branch rules. Branch protection and required checks are not verified/enabled by this report.
+
+### Medium: Home Assistant token storage and URL validation
+**Status:** Mitigations implemented; device migration/test verification still required.
+
+The token uses secure storage with migration from the legacy SharedPreferences value. URL validation permits HTTPS for remote hosts and HTTP only for loopback/private/local names, rejecting embedded credentials, query, and fragment. Test migration on a device before relying on it; local-name resolution is not an IP-pinning defense.
+
+## Repository hygiene
+
+- Local environment files, signing keystores, credential directories, and key properties are now ignored by Git.
+- The Gradle wrapper JAR is intentionally tracked so builds use the committed wrapper.
+- Do not commit API keys, tokens, signing keys, user data, logs, screenshots, backups, or local databases.
+- If a secret was ever committed, deleting the file is insufficient: revoke/rotate the secret immediately, then remove it from Git history if appropriate. History rewriting does not replace revocation.
+
+## Before any production release
+
+- [ ] Configure and protect private release-signing secrets; verify certificate fingerprint.
+- [ ] Add worker authentication/pairing and tighten endpoint access.
+- [ ] Complete SSRF/DNS rebinding defenses.
+- [ ] Restrict cleartext networking.
+- [ ] Review each permission and store-policy eligibility.
+- [ ] Run a full secret scan over all tracked files and Git history.
+- [ ] Run dependency vulnerability checks.
+- [ ] Test privacy/permission behavior on real devices.
+- [ ] Protect main and require CI checks.
+- [ ] Publish reproducible build/checksum/provenance.
+
+## Responsible reporting
+
+Please avoid posting credentials or personal data in public issues. Report security concerns privately to the repository owner using GitHub's private vulnerability reporting if enabled, or another private channel.
