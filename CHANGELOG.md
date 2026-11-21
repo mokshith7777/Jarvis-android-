@@ -1,5 +1,21 @@
 # Changelog
 
+## 3.3.0+330 — Development build (not a public release)
+
+- Development version number prepared on feature branch.
+- README refreshed to show the latest public release and in-development status.
+- CI build #200 passed Flutter analysis, tests, release APK build, identity/signature verification, and artifact upload.
+- New reactor launcher icon and cinematic splash assets have been prepared but are **not yet integrated into the Android project or this APK**.
+- The build artifact is available from the Actions run, not from the public Releases page.
+
+## 3.2.0+320 — Development branch
+
+- AI gateway and provider fallback routing.
+- Provider configuration and telemetry/cooldown circuit breaker.
+- Local-first appointments and calendar export.
+- Opt-in call triage using permission-gated metadata only.
+- Explicit Telegram summary actions; no automatic sends.
+
 ## 3.0.0+300
 
 - Defaulted to JARVIS Local Index AI at http://127.0.0.1:9000/v1 with model local-vision.
