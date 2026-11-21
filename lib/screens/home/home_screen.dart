@@ -31,6 +31,8 @@ import '../../widgets/status_chip.dart';
 import '../sessions/session_detail_screen.dart';
 import '../settings/settings_screen.dart';
 import '../connectors/connectors_screen.dart';
+import '../gateway/ai_gateway_screen.dart';
+import '../caller/caller_assistant_screen.dart';
 
 /// Main screen: live task transcript, task input with voice, overlay toggle.
 class HomeScreen extends StatefulWidget {
@@ -405,6 +407,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
             ListTile(leading:const Icon(Icons.hub_outlined),title:const Text('Connectors'),subtitle:const Text('Integrations and bridge health'),onTap:(){Navigator.of(context).pop();Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const ConnectorsScreen()));}),
+            ListTile(leading:const Icon(Icons.alt_route),title:const Text('AI Gateway'),subtitle:const Text('Provider routing and local endpoint'),onTap:(){Navigator.of(context).pop();Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const AiGatewayScreen()));}),
+            ListTile(leading:const Icon(Icons.call),title:const Text('Caller & Appointments'),subtitle:const Text('Call triage and scheduled follow-ups'),onTap:(){Navigator.of(context).pop();Navigator.of(context).push(MaterialPageRoute(builder:(_)=>const CallerAssistantScreen()));}),
             if (_executor.isBusy)
               ListTile(
                 dense: true,
