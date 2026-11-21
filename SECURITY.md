@@ -11,8 +11,8 @@ The release workflow currently signs the release APK with Android's debug key. T
 ### High — Termux worker endpoints have no authentication
 The worker binds to `127.0.0.1`, which prevents remote network access by default, but localhost is shared by apps on Android. The POST routes can trigger local inference, image/video processing, and browsing. The video-edit endpoint accepts an input path readable by the Termux user. Treat this worker as trusted local software only; do not bind it to `0.0.0.0` or expose it through a tunnel/port-forward. Add a pairing secret or another caller-authentication mechanism before treating it as hardened.
 
-### High — Browser-fetch route requires SSRF hardening
-The worker's `/browse` route extracts and fetches search-result URLs. URL scheme validation alone is insufficient because redirects and DNS can point to loopback/private/link-local hosts. The route needs destination validation for each redirect and DNS result before being considered safe. Do not expose the worker to untrusted callers.
+### High — Browser-fetch route has partial SSRF mitigation, not a complete guarantee
+The worker's `/browse` route fetches search-result URLs. The code now rejects credentialed/non-HTTP URLs and validates resolved addresses as public, including redirects. This reduces SSRF risk, but DNS validation and the later connection are not pinned to the same address (DNS-rebinding race), so this is not a complete SSRF defense. Do not expose the worker to untrusted callers.
 
 ### High — Broad Android permission surface
 The manifest requests permissions including microphone, camera, contacts, SMS, notification access, accessibility/window content, overlays, all-files access, app visibility, usage stats, and Shizuku integration. These permissions are sensitive and feature-dependent. The app must keep permissions opt-in, explain the data/action involved, minimize collection, and provide disable/clear controls. Publishing through Play Store would require a separate policy and permission eligibility review.
@@ -33,6 +33,7 @@ Workflow actions currently use version tags rather than full commit-SHA pins. Pi
 - Release/tag publishing is restricted to the main branch.
 - Added a separate PR workflow with read-only `contents: read` permission; it runs analysis, tests, worker syntax validation, and an APK build without uploading or publishing releases.
 - Public README and changelog were corrected to describe v3.3.1 as published and to disclose debug signing.
+- Termux worker browser-fetch now checks URL scheme/credentials, rejects non-public resolved IPs, and revalidates redirects; DNS-rebinding risk remains.
 
 ## Before production release
 
