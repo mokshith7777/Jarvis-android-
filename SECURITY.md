@@ -5,8 +5,8 @@ Scope: public repository configuration, GitHub Actions workflows, Flutter/native
 
 ## Findings
 
-### High — CI APK uses debug signing
-The release workflow currently signs the release APK with Android's debug key. This is acceptable only for test builds. Do not distribute it as a production/Play Store build. Before production publishing, create a private upload/release key, store it only in protected GitHub Actions secrets, and verify the signing certificate and rotation/back-up process. Never commit the keystore or passwords.
+### High — Release signing must use a private key
+Release builds no longer use the Android debug signing key. CI creates an installable debug APK when release signing secrets are absent and does not publish it to Releases. Release publishing is gated on a configured private key. Configure the protected secrets `JARVIS_RELEASE_KEYSTORE_BASE64` (base64-encoded keystore), `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD` before publishing. Never commit the keystore or passwords. Keep a protected backup and document key rotation.
 
 ### High — Termux worker endpoints have no authentication
 The worker binds to `127.0.0.1`, which prevents remote network access by default, but localhost is shared by apps on Android. The POST routes can trigger local inference, image/video processing, and browsing. The video-edit endpoint accepts an input path readable by the Termux user. Treat this worker as trusted local software only; do not bind it to `0.0.0.0` or expose it through a tunnel/port-forward. Add a pairing secret or another caller-authentication mechanism before treating it as hardened.
@@ -24,21 +24,23 @@ The manifest sets `android:usesCleartextTraffic="true"` to support local worker 
 Notification triage and opt-in indexing may process message snippets, screen text, and notification metadata. Keep opt-in explicit, retention bounded, source allowlisted, user-visible, and wipeable. Avoid logging message contents, screenshots, tokens, or personal information.
 
 ### Medium — GitHub Actions supply-chain hardening
-Workflow actions currently use version tags rather than full commit-SHA pins. Pin third-party actions to reviewed immutable SHAs, use minimal per-job permissions, and enable dependency/security alerts where available. Release publication should only run from the protected main branch.
+Workflow actions are now pinned to full commit SHAs with version comments. Build permissions are read-only; only the separate main-branch publishing job receives contents write permission. Keep pins updated through reviewed dependency updates and protect main.
 
 ## Changes made during this review
 
-- Release workflow no longer runs on pull requests.
-- Non-main workflow runs no longer push generated assets or lockfile changes to main.
-- Release/tag publishing is restricted to the main branch.
-- Added a separate PR workflow with read-only `contents: read` permission; it runs analysis, tests, worker syntax validation, and an APK build without uploading or publishing releases.
-- Public README and changelog were corrected to describe v3.3.1 as published and to disclose debug signing.
+- Release signing no longer falls back to the Android debug key; CI produces a debug-signed installable artifact when production secrets are absent and blocks publishing in that case.
+- Home Assistant long-lived tokens now use secure storage; migration writes the secure value before deleting the legacy plaintext preference, and stale legacy copies are removed.
+- Home Assistant URLs now require HTTPS except loopback, `.local`, and private/LAN addresses; malformed URLs are handled as connection errors.
+- CI no longer commits generated assets or lockfile updates to main. Build and publishing are separated with minimal permissions; releases are tied to the tested commit.
+- Gradle 9.3.1 wrapper scripts and JAR are committed; CI verifies and uses them instead of regenerating them.
+- Workflow actions are pinned to immutable full SHAs.
+- PR workflow remains read-only and runs analysis, tests, worker syntax validation, and an APK build.
 - Termux worker browser-fetch now checks URL scheme/credentials, rejects non-public resolved IPs, and revalidates redirects; DNS-rebinding risk remains.
 
 ## Before production release
 
 - [ ] Configure protected main branch and required reviews/checks.
-- [ ] Replace debug signing with a protected production signing key; verify the APK certificate.
+- [ ] Add the four protected release-signing secrets and verify the release certificate fingerprint.
 - [ ] Authenticate Termux worker requests and validate caller/pairing.
 - [ ] Harden browse URL fetches against SSRF and unsafe redirects.
 - [ ] Restrict cleartext to loopback or remove it.
