@@ -16,7 +16,7 @@ void main(){
    expect(service.appointments,hasLength(1));
    await service.setStatus(created.id,AppointmentStatus.confirmed);
    expect(service.appointments.first.status,AppointmentStatus.confirmed);
-   await service.update(created.copyWith(title:'Updated'));
+   await service.update(service.appointments.first.copyWith(title:'Updated'));
    expect(service.appointments.first.title,'Updated');
    final reload=AppointmentService.forTesting(preferences:prefs);
    await reload.init();
