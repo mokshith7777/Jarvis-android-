@@ -9,6 +9,7 @@ import 'local_index_service.dart';
 import 'hermes_evolution_service.dart';
 import 'personality_service.dart';
 import 'settings_service.dart';
+import 'ai_gateway_service.dart';
 
 /// Error thrown for any AI-gateway failure (network, auth, bad payload).
 class AiException implements Exception {
@@ -1303,6 +1304,20 @@ The user is viewing an article or screen on their device and requested an execut
     List<Map<String, dynamic>> messages,
     SettingsService settings,
   ) async {
+    final gateway = AiGatewayService.instance;
+    if (settings.aiGatewayEnabled && gateway.localGatewayRunning && gateway.autoFallbackEnabled) {
+      try {
+        return await gateway.routeChatCompletion(
+          messages: messages,
+          maxTokens: settings.maxTokens,
+          temperature: settings.temperature,
+        );
+      } catch (error) {
+        // Gateway routing is an optional enhancement. Preserve the existing direct
+        // provider path if routing fails, so the assistant remains usable.
+        debugPrint('[AiService] Gateway route failed; using direct provider: $error');
+      }
+    }
     if (settings.apiKey.isEmpty && !_isLocalBackend) {
       throw const AiException(
         'No API key configured. Open Settings and add one first.',
