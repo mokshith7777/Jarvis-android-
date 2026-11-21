@@ -31,6 +31,7 @@ class SettingsService extends ChangeNotifier {
   static const FlutterSecureStorage _vault = FlutterSecureStorage();
   String _apiKeyCache = '';
   String _telegramTokenCache = '';
+  String _homeAssistantTokenCache = '';
 
   bool get isReady => _prefs != null;
 
@@ -43,6 +44,16 @@ class SettingsService extends ChangeNotifier {
       if (_apiKeyCache.isNotEmpty) {
         await _vault.write(key: 'ai_api_key', value: _apiKeyCache);
         await _prefs?.remove('ai_api_key');
+      }
+    }
+    _homeAssistantTokenCache = await _vault.read(key: 'home_assistant_token') ?? '';
+    if (_homeAssistantTokenCache.isEmpty) {
+      _homeAssistantTokenCache = _prefs?.getString('smart_home_ha_token') ?? '';
+      if (_homeAssistantTokenCache.isNotEmpty) {
+        // Write secure storage first. Remove the legacy preference only after
+        // the write succeeds, so an interrupted migration never loses the token.
+        await _vault.write(key: 'home_assistant_token', value: _homeAssistantTokenCache);
+        await _prefs?.remove('smart_home_ha_token');
       }
     }
     _telegramTokenCache = await _vault.read(key: 'telegram_token') ?? '';
@@ -394,10 +405,19 @@ class SettingsService extends ChangeNotifier {
   }
 
   /// Home Assistant Long-Lived Access Token
-  String get homeAssistantToken =>
-      _prefs?.getString('smart_home_ha_token') ?? '';
+  String get homeAssistantToken => _homeAssistantTokenCache;
   Future<void> setHomeAssistantToken(String value) async {
-    await _prefs?.setString('smart_home_ha_token', value.trim());
+    _homeAssistantTokenCache = value.trim();
+    if (_homeAssistantTokenCache.isEmpty) {
+      await _vault.delete(key: 'home_assistant_token');
+    } else {
+      await _vault.write(
+        key: 'home_assistant_token',
+        value: _homeAssistantTokenCache,
+      );
+    }
+    // Clean up any stale legacy value regardless of whether the new value is set.
+    await _prefs?.remove('smart_home_ha_token');
     notifyListeners();
   }
 
