@@ -1,10 +1,72 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'settings_service.dart';
+
+/// Normalizes a Home Assistant URL and permits cleartext only to local/private hosts.
+String normalizeHomeAssistantBaseUrl(String raw) {
+  var value = raw.trim();
+  if (!value.startsWith('http://') && !value.startsWith('https://')) {
+    value = 'http://$value';
+  }
+  final uri = Uri.tryParse(value);
+  if (uri == null ||
+      !uri.hasAuthority ||
+      uri.host.isEmpty ||
+      uri.userInfo.isNotEmpty ||
+      uri.query.isNotEmpty ||
+      uri.fragment.isNotEmpty) {
+    throw const FormatException(
+      'Enter a valid Home Assistant URL without credentials, query, or fragment.',
+    );
+  }
+
+  final host = uri.host.toLowerCase();
+  final parsedAddress = InternetAddress.tryParse(host.replaceAll('[', '').replaceAll(']', ''));
+  final isPrivateAddress = parsedAddress != null &&
+      (parsedAddress.isLoopback ||
+          (parsedAddress.type == InternetAddressType.IPv4 &&
+              _isPrivateIpv4(parsedAddress.rawAddress)) ||
+          (parsedAddress.type == InternetAddressType.IPv6 &&
+              _isPrivateIpv6(parsedAddress.rawAddress));
+  final isLocalName = host == 'localhost' ||
+      host.endsWith('.local') ||
+      host.endsWith('.localhost');
+  if (uri.scheme != 'https' &&
+      !(uri.scheme == 'http' && (isLocalName || isPrivateAddress))) {
+    throw const FormatException(
+      'Home Assistant must use HTTPS, except for local/LAN hosts.',
+    );
+  }
+
+  var normalized = uri.toString();
+  while (normalized.endsWith('/')) {
+    normalized = normalized.substring(0, normalized.length - 1);
+  }
+  return normalized;
+}
+
+bool _isPrivateIpv4(List<int> octets) {
+  if (octets.length != 4) return false;
+  final a = octets[0], b = octets[1];
+  return a == 10 ||
+      a == 127 ||
+      (a == 192 && b == 168) ||
+      (a == 172 && b >= 16 && b <= 31) ||
+      (a == 169 && b == 254);
+}
+
+bool _isPrivateIpv6(List<int> octets) {
+  if (octets.length != 16) return false;
+  final first = octets[0], second = octets[1];
+  // Unique-local fc00::/7 and link-local fe80::/10.
+  return (first & 0xfe) == 0xfc ||
+      (first == 0xfe && (second & 0xc0) == 0x80);
+}
 
 /// Representation of a Home Assistant / IoT smart device entity.
 class SmartDeviceEntity {
@@ -45,61 +107,7 @@ class SmartHomeService extends ChangeNotifier {
   String? _lastError;
   String? get lastError => _lastError;
 
-  String _cleanUrl(String raw) {
-    var value = raw.trim();
-    if (!value.startsWith('http://') && !value.startsWith('https://')) {
-      value = 'http://$value';
-    }
-    final uri = Uri.tryParse(value);
-    if (uri == null ||
-        !uri.hasAuthority ||
-        uri.host.isEmpty ||
-        uri.userInfo.isNotEmpty ||
-        uri.query.isNotEmpty ||
-        uri.fragment.isNotEmpty) {
-      throw const FormatException(
-        'Enter a valid Home Assistant URL without credentials, query, or fragment.',
-      );
-    }
-
-    // HTTPS is required for remote instances. HTTP is allowed only for local
-    // and private-network Home Assistant servers that commonly run without TLS.
-    final host = uri.host.toLowerCase();
-    final isLocal = host == 'localhost' ||
-        host.endsWith('.local') ||
-        host == '::1' ||
-        host.startsWith('fc') ||
-        host.startsWith('fd') ||
-        host.startsWith('fe80:') ||
-        _isPrivateIpv4(host);
-    if (uri.scheme != 'https' && !(uri.scheme == 'http' && isLocal)) {
-      throw const FormatException(
-        'Home Assistant must use HTTPS, except for local/LAN hosts.',
-      );
-    }
-
-    var normalized = uri.toString();
-    while (normalized.endsWith('/')) {
-      normalized = normalized.substring(0, normalized.length - 1);
-    }
-    return normalized;
-  }
-
-  bool _isPrivateIpv4(String host) {
-    final parts = host.split('.');
-    if (parts.length != 4) return false;
-    final octets = parts.map(int.tryParse).toList();
-    if (octets.any((value) => value == null || value < 0 || value > 255)) {
-      return false;
-    }
-    final a = octets[0]!;
-    final b = octets[1]!;
-    return a == 10 ||
-        a == 127 ||
-        (a == 192 && b == 168) ||
-        (a == 172 && b >= 16 && b <= 31) ||
-        (a == 169 && b == 254);
-  }
+  String _cleanUrl(String raw) => normalizeHomeAssistantBaseUrl(raw);
 
   Map<String, String> _headers() {
     final token = SettingsService.instance.homeAssistantToken.trim();
