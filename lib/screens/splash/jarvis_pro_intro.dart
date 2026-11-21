@@ -1,8 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-/// Five-second portrait-first JARVIS PRO reactor reveal shown once at cold app launch.
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+
+/// Plays the v3.3 cinematic splash once at cold launch, then fades into the app.
 class JarvisProIntro extends StatefulWidget {
   const JarvisProIntro({super.key, required this.child});
   final Widget child;
@@ -11,28 +13,65 @@ class JarvisProIntro extends StatefulWidget {
   State<JarvisProIntro> createState() => _JarvisProIntroState();
 }
 
-class _JarvisProIntroState extends State<JarvisProIntro>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  Timer? _timer;
+class _JarvisProIntroState extends State<JarvisProIntro> {
+  VideoPlayerController? _video;
+  Timer? _fallbackTimer;
   bool _finished = false;
+  bool _fallback = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 5000),
-    )..forward();
-    _timer = Timer(const Duration(milliseconds: 5000), () {
-      if (mounted) setState(() => _finished = true);
-    });
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      _finished = true;
+      return;
+    }
+    _startVideo();
+  }
+
+  Future<void> _startVideo() async {
+    final controller = VideoPlayerController.asset(
+      'assets/branding/JARVIS_PRO_Cinematic_Enhanced_Final.mp4',
+    );
+    _video = controller;
+    try {
+      await controller.initialize();
+      if (!mounted || _finished) return;
+      await controller.setLooping(false);
+      controller.addListener(_onVideoUpdate);
+      await controller.play();
+      setState(() {});
+    } catch (_) {
+      if (!mounted || _finished) return;
+      _fallback = true;
+      _fallbackTimer = Timer(const Duration(seconds: 3), _finish);
+      setState(() {});
+    }
+  }
+
+  void _onVideoUpdate() {
+    final controller = _video;
+    if (controller == null || !controller.value.isInitialized) return;
+    final duration = controller.value.duration;
+    if (duration > Duration.zero &&
+        controller.value.position >= duration &&
+        !controller.value.isPlaying) {
+      _finish();
+    }
+  }
+
+  void _finish() {
+    if (!mounted || _finished) return;
+    _fallbackTimer?.cancel();
+    _video?.pause();
+    setState(() => _finished = true);
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _controller.dispose();
+    _fallbackTimer?.cancel();
+    _video?.removeListener(_onVideoUpdate);
+    _video?.dispose();
     super.dispose();
   }
 
@@ -46,251 +85,106 @@ class _JarvisProIntroState extends State<JarvisProIntro>
           FadeTransition(opacity: animation, child: child),
       child: _finished
           ? KeyedSubtree(key: const ValueKey('app'), child: widget.child)
-          : _IntroCanvas(key: const ValueKey('intro'), controller: _controller),
+          : _fallback
+              ? _FallbackSplash(key: const ValueKey('fallback'), onSkip: _finish)
+              : _video?.value.isInitialized == true
+                  ? _VideoSplash(
+                      key: const ValueKey('video'),
+                      controller: _video!,
+                      onSkip: _finish,
+                    )
+                  : const _LoadingSplash(key: ValueKey('loading')),
     );
   }
 }
 
-class _IntroCanvas extends StatelessWidget {
-  const _IntroCanvas({super.key, required this.controller});
-  final AnimationController controller;
+class _VideoSplash extends StatelessWidget {
+  const _VideoSplash({
+    super.key,
+    required this.controller,
+    required this.onSkip,
+  });
+  final VideoPlayerController controller;
+  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF020612),
-      body: SizedBox.expand(
-        child: AnimatedBuilder(
-          animation: controller,
-          builder: (context, _) {
-            final t = controller.value;
-            final reveal = Curves.easeOutCubic.transform((t * 1.45).clamp(0.0, 1.0));
-            final titleIn = Curves.easeOutBack.transform(((t - .42) / .32).clamp(0.0, 1.0));
-            final pulse = .72 + .28 * math.sin(t * math.pi * 10).abs();
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: const Alignment(0, -.05),
-                        radius: 1.0,
-                        colors: [
-                          const Color(0xFF082B68).withValues(alpha: .42 * reveal),
-                          const Color(0xFF020612),
-                          const Color(0xFF01030A),
-                        ],
-                      ),
-                    ),
-                  ),
+      backgroundColor: const Color(0xFF050505),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onSkip,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: controller.value.size.width,
+                height: controller.value.size.height,
+                child: VideoPlayer(controller),
+              ),
+            ),
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + 12,
+              right: 16,
+              child: TextButton(
+                onPressed: onSkip,
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black54,
                 ),
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: _ReactorPainter(
-                      progress: t,
-                      reveal: reveal,
-                      pulse: pulse,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 28,
-                  right: 28,
-                  bottom: MediaQuery.of(context).size.height * .245,
-                  child: Opacity(
-                    opacity: titleIn.clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(0, 24 * (1 - titleIn)),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) =>
-                                const LinearGradient(colors: [
-                                  Color(0xFFE8F7FF),
-                                  Color(0xFF63DFFF),
-                                  Color(0xFF9FB7D0),
-                                ]).createShader(bounds),
-                            child: const Text(
-                              'JARVIS',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 31,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 4.2,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'PRO',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color(0xFFFF315B),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 6,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'PERSONAL AI COMMAND CENTER',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: const Color(0xFF8CCBFF).withValues(alpha: .82),
-                              fontSize: 9,
-                              letterSpacing: 2.4,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 42,
-                  child: Opacity(
-                    opacity: (t * 2.8).clamp(0.0, 1.0) * (1 - (t * .35)),
-                    child: const Text(
-                      'INITIALIZING CORE SYSTEMS',
-                      style: TextStyle(
-                        color: Colors.white38,
-                        fontSize: 8,
-                        letterSpacing: 2,
-                        fontFamily: 'monospace',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+                child: const Text('SKIP'),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ReactorPainter extends CustomPainter {
-  _ReactorPainter({
-    required this.progress,
-    required this.reveal,
-    required this.pulse,
-  });
-  final double progress;
-  final double reveal;
-  final double pulse;
+class _LoadingSplash extends StatelessWidget {
+  const _LoadingSplash({super.key});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * .405);
-    final radius = math.min(size.width * .405, size.height * .265) * reveal;
-    if (radius <= 0) return;
-    final blue = const Color(0xFF168BFF);
-    final cyan = const Color(0xFF64DFFF);
-    final red = const Color(0xFFFF174F);
-    final gold = const Color(0xFFFFA52B);
-
-    final glow = Paint()
-      ..color = blue.withValues(alpha: .28 * pulse)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, radius * .22);
-    canvas.drawCircle(center, radius * .72, glow);
-
-    void ring(double r, Color color, double width, double rotation,
-        {bool dashed = false}) {
-      final paint = Paint()
-        ..color = color.withValues(alpha: .82)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = width
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, width * .75);
-      if (!dashed) {
-        canvas.drawCircle(center, r, paint);
-      } else {
-        final path = Path();
-        for (var i = 0; i < 48; i++) {
-          final a = i * math.pi * 2 / 48 + rotation;
-          final p = center + Offset(math.cos(a) * r, math.sin(a) * r);
-          if (i % 2 == 0) {
-            path.moveTo(p.dx, p.dy);
-            path.lineTo(
-              center.dx + math.cos(a + .055) * r,
-              center.dy + math.sin(a + .055) * r,
-            );
-          }
-        }
-        canvas.drawPath(path, paint);
-      }
-    }
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(progress * math.pi * 2);
-    canvas.translate(-center.dx, -center.dy);
-    ring(radius, red, 5, 0);
-    ring(radius * .91, gold, 2.5, 0, dashed: true);
-    ring(radius * .79, const Color(0xFF294D7D), 7, 0);
-    ring(radius * .72, cyan, 2.2, 0, dashed: true);
-    canvas.restore();
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.rotate(-progress * math.pi * 3.2);
-    canvas.translate(-center.dx, -center.dy);
-    ring(radius * .59, blue, 4, 0);
-    ring(radius * .49, cyan, 2, 0, dashed: true);
-    canvas.restore();
-
-    final core = Paint()
-      ..shader = RadialGradient(colors: [
-        const Color(0xFFE9FFFF),
-        cyan,
-        blue.withValues(alpha: .88),
-        const Color(0xFF05245B),
-      ]).createShader(Rect.fromCircle(center: center, radius: radius * .34));
-    canvas.drawCircle(center, radius * .34, core);
-    final coreGlow = Paint()
-      ..color = cyan.withValues(alpha: .48 * pulse)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 24);
-    canvas.drawCircle(center, radius * .29, coreGlow);
-
-    // Central J emblem in metallic cyan-to-crimson styling.
-    final monogram = TextPainter(
-      text: TextSpan(
-        text: 'J',
-        style: TextStyle(
-          fontFamily: 'monospace',
-          fontSize: radius * .46,
-          fontWeight: FontWeight.w900,
-          foreground: Paint()
-            ..shader = const LinearGradient(
-              colors: [Color(0xFFF4FCFF), Color(0xFF91CFFF), Color(0xFFFF315B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ).createShader(Rect.fromCircle(center: center, radius: radius * .3)),
-          shadows: const [Shadow(color: Color(0xFFFF174F), blurRadius: 18)],
+  Widget build(BuildContext context) => const Scaffold(
+        backgroundColor: Color(0xFF050505),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF00E5FF)),
         ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    monogram.paint(canvas, center - Offset(monogram.width / 2, monogram.height / 2));
+      );
+}
 
-    final nodes = Paint()..color = gold.withValues(alpha: .95);
-    for (var i = 0; i < 8; i++) {
-      final a = i * math.pi / 4 + progress * math.pi * 2;
-      final p = center + Offset(math.cos(a) * radius * .84,
-          math.sin(a) * radius * .84);
-      canvas.drawCircle(p, radius * .018, nodes);
-    }
-  }
+class _FallbackSplash extends StatelessWidget {
+  const _FallbackSplash({super.key, required this.onSkip});
+  final VoidCallback onSkip;
 
   @override
-  bool shouldRepaint(covariant _ReactorPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.reveal != reveal ||
-      oldDelegate.pulse != pulse;
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF050505),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Icon(Icons.bolt, color: Color(0xFF00E5FF), size: 64),
+              SizedBox(height: 16),
+              Text(
+                'JARVIS PRO',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 3,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'PERSONAL AI COMMAND CENTER',
+                style: TextStyle(color: Colors.white70, letterSpacing: 2),
+              ),
+            ],
+          ),
+        ),
+      );
 }
