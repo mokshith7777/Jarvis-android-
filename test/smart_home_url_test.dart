@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jarvis/smart_home_service.dart';
+import 'package:jarvis_android/services/smart_home_service.dart';
 
 void main() {
   group('normalizeHomeAssistantBaseUrl', () {
