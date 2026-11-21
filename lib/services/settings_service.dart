@@ -53,9 +53,11 @@ class SettingsService extends ChangeNotifier {
         // Write secure storage first. Remove the legacy preference only after
         // the write succeeds, so an interrupted migration never loses the token.
         await _vault.write(key: 'home_assistant_token', value: _homeAssistantTokenCache);
-        await _prefs?.remove('smart_home_ha_token');
       }
     }
+    // Remove any old plaintext copy, including when secure storage already had
+    // the credential from an earlier interrupted migration.
+    await _prefs?.remove('smart_home_ha_token');
     _telegramTokenCache = await _vault.read(key: 'telegram_token') ?? '';
     if (_telegramTokenCache.isEmpty) {
       _telegramTokenCache = _prefs?.getString('telegram_token') ?? '';
@@ -81,7 +83,7 @@ class SettingsService extends ChangeNotifier {
       }
       await _prefs?.setBool('local_index_ai_provider_migration_v1', true);
     }
-        // Ensure system prompt is enabled so models always receive the agent action grammar
+    // Ensure system prompt is enabled so models always receive the agent action grammar
     if (_prefs?.getBool('ai_use_system_prompt') != true) {
       await _prefs?.setBool('ai_use_system_prompt', true);
     }
