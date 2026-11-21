@@ -25,7 +25,7 @@
 .reveal{opacity:0;transform:translateY(32px)}.reveal.show{opacity:1;transform:translateY(0);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1)}
 @keyframes orbit{to{transform:rotateX(68deg) rotateZ(332deg)}}@keyframes float{50%{transform:translateY(-12px) rotateY(10deg)}}@keyframes cubeSpin{to{transform:rotateX(360deg) rotateY(360deg)}}@keyframes pulse{50%{opacity:.3;transform:scaleY(.6)}}@keyframes marquee{to{transform:translateX(-50%)}}@media(max-width:800px){.nav{display:none}.hero-grid,.about,.roadmap{grid-template-columns:1fr}.scene{height:400px;min-height:0;order:2}.hero{padding-top:130px}.section{padding:85px 0}.section-head{display:block}.head-note{margin-top:20px}.journey{grid-template-columns:1fr}.stack-card{grid-template-columns:1fr;padding:24px;top:85px!important}.stack-visual{min-height:130px}.roadmap-side{position:static}.architecture{grid-template-columns:1fr 1fr}.gate{grid-template-columns:1fr}.gate-number{display:none}.footer-bottom{display:block}.footer-bottom>*{display:block;margin:10px 0}}@media(max-width:500px){.wrap{width:calc(100% - 30px)}.topbar{padding:15px}.hero-copy{font-size:15px}.scene{height:320px}.core{width:150px;height:150px}.core .sphere{inset:43px}.section{padding:70px 0}.architecture{grid-template-columns:1fr}.statrow{grid-template-columns:1fr}.stack-card{min-height:340px}.milestone{padding:16px}.footer-big{letter-spacing:-.09em}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
 </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>\n<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>\n</head>
 <body class="noise">
 <header class="topbar"><a class="brand" href="#top"><span class="brandmark"></span> JARVIS / ANDROID</a><nav class="nav"><a href="#vision">VISION</a><a href="#systems">SYSTEMS</a><a href="#roadmap">ROADMAP</a><a href="#release">RELEASE</a></nav><span class="mono">PROJECT / BLUEPRINT</span></header>
 <main id="top">
@@ -51,13 +51,23 @@
 <footer class="footer"><div class="wrap"><div class="footer-big">BUILD THE<br><span>INTELLIGENCE.</span></div><div class="footer-bottom"><span class="mono">JARVIS ANDROID / PROJECT BLUEPRINT</span><span class="mono">PLAN ONLY · VERIFIED CHECKLIST SAVED LOCALLY</span><a class="mono" href="https://github.com/mokshith7777/Jarvis-android-">OPEN SOURCE ↗</a></div></div></footer>
 <script>
 const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('show');observer.unobserve(e.target)}}),{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
 const scene=document.getElementById('scene');
+if(window.gsap&&!reduce){
+  gsap.registerPlugin(ScrollTrigger);
+  gsap.utils.toArray('.reveal').forEach(el=>gsap.fromTo(el,{y:38,opacity:0},{y:0,opacity:1,duration:.85,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 88%',once:true}}));
+  gsap.to('.core',{y:-18,rotateY:12,duration:3.2,ease:'sine.inOut',repeat:-1,yoyo:true});
+  gsap.to('.orbit.o2',{rotation:390,duration:32,ease:'none',repeat:-1});
+  gsap.to('.hero-content',{y:55,opacity:.65,ease:'none',scrollTrigger:{trigger:'.hero',start:'top top',end:'bottom top',scrub:.5}});
+  gsap.utils.toArray('.stack-card').forEach((card,i)=>gsap.fromTo(card,{rotateX:3,scale:.98},{rotateX:0,scale:1,ease:'none',scrollTrigger:{trigger:card,start:'top 85%',end:'top 30%',scrub:.4}}));
+  gsap.to('.marquee-track',{xPercent:-20,ease:'none',scrollTrigger:{trigger:'.marquee',start:'top bottom',end:'bottom top',scrub:1}});
+}else{
+  const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('show');observer.unobserve(e.target)}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+}
 if(!reduce&&scene){scene.addEventListener('pointermove',e=>{const r=scene.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;scene.style.transform='rotateY('+x*9+'deg) rotateX('+(-y*7)+'deg)'},{passive:true});scene.addEventListener('pointerleave',()=>scene.style.transform='')}
 const key='jarvis-blueprint-checks-v1',checks=[...document.querySelectorAll('[data-task]')],saved=JSON.parse(localStorage.getItem(key)||'{}');
 checks.forEach(c=>{c.checked=!!saved[c.dataset.task];c.addEventListener('change',()=>{const state={};checks.forEach(x=>state[x.dataset.task]=x.checked);localStorage.setItem(key,JSON.stringify(state));update()})});
-function update(){const done=checks.filter(c=>c.checked).length,pct=Math.round(done/checks.length*100);document.getElementById('progressText').textContent=pct+'%';document.getElementById('progressBar').style.width=pct+'%';document.querySelectorAll('.milestone').forEach(m=>{const boxes=[...m.querySelectorAll('input')],complete=boxes.length&&boxes.every(x=>x.checked),status=m.querySelector('.phase-status');m.classList.toggle('completed',complete);status.textContent=complete?'VERIFIED CHECKLIST':'IN PROGRESS';status.style.color=complete?'var(--cyan)':''})}
+function update(){const done=checks.filter(c=>c.checked).length,pct=Math.round(done/checks.length*100);document.getElementById('progressText').textContent=pct+'%';document.getElementById('progressBar').style.width=pct+'%';document.querySelectorAll('.milestone').forEach(m=>{const boxes=[...m.querySelectorAll('input')],complete=boxes.length&&boxes.every(x=>x.checked),status=m.querySelector('.phase-status');m.classList.toggle('completed',complete);status.textContent=complete?'CHECKLIST COMPLETE':'IN PROGRESS';status.style.color=complete?'var(--cyan)':''})}
 document.getElementById('reset').addEventListener('click',()=>{if(confirm('Reset all locally saved checklist progress?')){localStorage.removeItem(key);checks.forEach(c=>c.checked=false);update()}});
 update();
 </script>
