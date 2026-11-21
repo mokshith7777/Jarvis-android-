@@ -45,9 +45,20 @@ app.*.map.json
 /android/app/release
 
 # Android related
-**/android/**/gradle-wrapper.jar
 **/android/.gradle/
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 /android/build/
 /android/private_agent_android.iml
+
+# Local credentials and signing material
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.p12
+*.pfx
+key.properties
+secrets/
+credentials/
