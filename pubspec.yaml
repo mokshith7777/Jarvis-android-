@@ -31,6 +31,7 @@ dependencies:
   uuid: ^4.6.0
   crypto: ^3.0.8
   flutter_secure_storage: ^11.2.0
+  video_player: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +43,4 @@ flutter:
   assets:
     - assets/icon/genie_logo.png
     - assets/images/
+    - assets/branding/
