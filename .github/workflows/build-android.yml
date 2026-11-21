@@ -30,7 +30,8 @@ jobs:
       version_code: ${{ steps.verify.outputs.version_code }}
       apk_name: ${{ steps.verify.outputs.apk_name }}
       sha256: ${{ steps.verify.outputs.sha256 }}
-      signed: ${{ steps.verify.outputs.signed }}
+      release_signed: ${{ steps.signing.outputs.signed }}
+      apk_signed: ${{ steps.verify.outputs.signed }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -106,20 +107,29 @@ jobs:
             echo "Signing secrets missing; build will be unsigned and will not be published as a release."
           fi
 
-      - name: Build release APK
+      - name: Build signed release APK
+        if: steps.signing.outputs.signed == 'true'
         env:
-          JARVIS_RELEASE_KEYSTORE_PATH: ${{ steps.signing.outputs.signed == 'true' && format('{0}/jarvis-release.jks', runner.temp) || '' }}
+          JARVIS_RELEASE_KEYSTORE_PATH: ${{ format('{0}/jarvis-release.jks', runner.temp) }}
           JARVIS_RELEASE_STORE_PASSWORD: ${{ secrets.JARVIS_RELEASE_STORE_PASSWORD }}
           JARVIS_RELEASE_KEY_ALIAS: ${{ secrets.JARVIS_RELEASE_KEY_ALIAS }}
           JARVIS_RELEASE_KEY_PASSWORD: ${{ secrets.JARVIS_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --release
+
+      - name: Build installable debug APK when release key is not configured
+        if: steps.signing.outputs.signed != 'true'
+        run: flutter build apk --debug
 
       - name: Verify APK identity and signature
         id: verify
         shell: bash
         run: |
           set -euo pipefail
-          APK="build/app/outputs/flutter-apk/app-release.apk"
+          if [[ "${{ steps.signing.outputs.signed }}" == "true" ]]; then
+            APK="build/app/outputs/flutter-apk/app-release.apk"
+          else
+            APK="build/app/outputs/flutter-apk/app-debug.apk"
+          fi
           test -s "$APK"
           BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
           AAPT="$BUILD_TOOLS/aapt"
@@ -138,11 +148,8 @@ jobs:
           test "$VERSION_NAME" = "$PUBSPEC_VERSION"
           test "$VERSION_CODE" = "$PUBSPEC_CODE"
           SIGNED="false"
-          if "$APKSIGNER" verify --verbose --print-certs "$APK"; then
-            SIGNED="true"
-          else
-            echo "APK is unsigned (expected for CI builds without release signing secrets)."
-          fi
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          SIGNED="true"
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           mkdir -p dist
           cp "$APK" "dist/JARVIS-PRO-v${VERSION_NAME}.apk"
@@ -163,10 +170,11 @@ jobs:
 
   publish:
     needs: build
-    if: github.ref == 'refs/heads/main' && needs.build.outputs.signed == 'true'
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.release_signed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - uses: actions/checkout@v7
         with:
