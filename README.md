@@ -3,8 +3,8 @@
 **Android-first personal AI assistant** built with Flutter and native Android integrations.
 
 - **Package ID:** `com.mokshith.jarvis.ai`
-- **Current public release:** [v3.1.0](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.1.0)
-- **Current main source version:** `3.3.0+330` (branding update in progress; not yet a published release)
+- **Current public release:** v3.3.1 (pending CI verification)
+- **Current main source version:** `3.3.1+331` (cinematic splash + launcher branding integration)
 - **Platform:** Android
 - **Build:** Flutter / Dart + native Android
 
@@ -13,7 +13,7 @@
 ## Download
 Use the [GitHub Releases page](https://github.com/mokshith7777/Jarvis-android-/releases) for public, versioned APK downloads. Only releases listed there are public releases.
 
-The source version on `main` is now v3.3.0. A public release will be created only after the cinematic splash video and launcher icon are integrated and the APK is verified.
+The v3.3.1 source integrates the cinematic splash video and launcher icon generation. Release publication depends on CI verification.
 
 ## Highlights
 - Chat, voice input and text-to-speech modes.
