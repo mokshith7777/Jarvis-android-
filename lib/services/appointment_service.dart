@@ -42,13 +42,13 @@ class AppointmentService extends ChangeNotifier {
   Future<bool> update(AppointmentItem item)async{await init();final i=_items.indexWhere((x)=>x.id==item.id);if(i<0)return false;await _cancelLocalNotification(item.id);_items[i]=item;_sort();await _save();await _scheduleLocalNotification(item);return true;}
   Future<bool> setStatus(String id,AppointmentStatus status)async{await init();final i=_items.indexWhere((x)=>x.id==id);if(i<0)return false;final item=_items[i].copyWith(status:status);_items[i]=item;await _save();if(status==AppointmentStatus.completed||status==AppointmentStatus.cancelled){await _cancelLocalNotification(id);}else{await _scheduleLocalNotification(item);}return true;}
   Future<bool> delete(String id)async{await init();final before=_items.length;_items.removeWhere((x)=>x.id==id);if(before==_items.length)return false;await _cancelLocalNotification(id);await _save();return true;}
-  String formatTelegramSummary(AppointmentItem item)=>'JARVIS PRO • Appointment
-Title: '+item.title+'
-Caller: '+(item.callerName.isEmpty?'Unknown':item.callerName)+'
-Phone: '+(item.phoneNumber.isEmpty?'Not provided':item.phoneNumber)+'
-Time: '+item.scheduledAt.toLocal().toString()+'
-Status: '+item.status.name+'
-Notes: '+(item.notes.isEmpty?'None':item.notes);
+  String formatTelegramSummary(AppointmentItem item) =>
+      'JARVIS PRO • Appointment\nTitle: ' + item.title +
+      '\nCaller: ' + (item.callerName.isEmpty ? 'Unknown' : item.callerName) +
+      '\nPhone: ' + (item.phoneNumber.isEmpty ? 'Not provided' : item.phoneNumber) +
+      '\nTime: ' + item.scheduledAt.toLocal().toString() +
+      '\nStatus: ' + item.status.name +
+      '\nNotes: ' + (item.notes.isEmpty ? 'None' : item.notes);
   Future<String> sendTelegramSummary(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);final settings=SettingsService.instance;if(settings.telegramToken.isEmpty)return 'Telegram bot token is not configured in Settings.';if(settings.telegramOwnerChatId.isEmpty)return 'Telegram owner chat ID is not configured in Settings.';final ok=await TelegramService.instance.sendMessage(settings.telegramOwnerChatId,formatTelegramSummary(item));if(!ok)return 'Telegram message failed. Check the bot token, network, and owner chat ID.';await update(item.copyWith(telegramNotified:true));return 'Appointment summary sent to your configured Telegram owner chat.';}
   Future<bool> exportToCalendar(String id)async{await init();final item=_items.firstWhere((x)=>x.id==id);await CalendarReminderService.instance.addItem(title:item.title,description:'Caller: '+item.callerName+'
 Phone: '+item.phoneNumber+'
