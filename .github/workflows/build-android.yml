@@ -25,8 +25,12 @@ jobs:
   build:
     permissions:
       contents: read
-    actions: write
-    id-token: none
+    outputs:
+      version_name: ${{ steps.verify.outputs.version_name }}
+      version_code: ${{ steps.verify.outputs.version_code }}
+      apk_name: ${{ steps.verify.outputs.apk_name }}
+      sha256: ${{ steps.verify.outputs.sha256 }}
+      signed: ${{ steps.verify.outputs.signed }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
