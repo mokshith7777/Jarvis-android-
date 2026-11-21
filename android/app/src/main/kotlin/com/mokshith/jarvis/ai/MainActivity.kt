@@ -554,6 +554,49 @@ class MainActivity : FlutterActivity() {
                         result.success(true)
                     }
 
+                    "getRecentCalls" -> {
+                        val limit = (call.argument<Number>("limit") ?: 15).toInt().coerceIn(1, 100)
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
+                            result.success(emptyList<Map<String, Any>>())
+                        } else {
+                            runBridgeDatabaseTask(result) {
+                                val calls = mutableListOf<Map<String, Any>>()
+                                val projection = arrayOf(
+                                    CallLog.Calls.NUMBER,
+                                    CallLog.Calls.CACHED_NAME,
+                                    CallLog.Calls.TYPE,
+                                    CallLog.Calls.DATE,
+                                    CallLog.Calls.DURATION
+                                )
+                                contentResolver.query(
+                                    CallLog.Calls.CONTENT_URI,
+                                    projection,
+                                    null,
+                                    null,
+                                    CallLog.Calls.DATE + " DESC"
+                                )?.use { cursor ->
+                                    val numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER)
+                                    val nameIndex = cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)
+                                    val typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE)
+                                    val dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE)
+                                    val durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION)
+                                    while (cursor.moveToNext() && calls.size < limit) {
+                                        calls.add(
+                                            mapOf(
+                                                "number" to if (numberIndex >= 0) cursor.getString(numberIndex).orEmpty() else "",
+                                                "name" to if (nameIndex >= 0) cursor.getString(nameIndex).orEmpty() else "",
+                                                "type" to if (typeIndex >= 0) cursor.getInt(typeIndex) else 0,
+                                                "date" to if (dateIndex >= 0) cursor.getLong(dateIndex) else 0L,
+                                                "duration" to if (durationIndex >= 0) cursor.getLong(durationIndex) else 0L
+                                            )
+                                        )
+                                    }
+                                }
+                                calls
+                            }
+                        }
+                    }
+
                     "getSmsMessages" -> {
                         val limit = (call.argument<Number>("limit") ?: 20).toInt()
                         try {
