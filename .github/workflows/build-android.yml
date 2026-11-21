@@ -15,7 +15,7 @@ on:
       - ".github/workflows/build-android.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: jarvis-pro-release-${{ github.ref }}
@@ -23,27 +23,19 @@ concurrency:
 
 jobs:
   build:
+    permissions:
+      contents: read
+    actions: write
+    id-token: none
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
-      - name: Generate and commit v3.3 launcher icons
-        shell: bash
+      - name: Generate launcher icons for this build
         run: |
           set -euo pipefail
           python3 -m pip install --quiet pillow
           python3 .github/scripts/generate_brand_icons.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/branding/JARVIS_PRO_v3.3_Launcher_Icon_512.png android/app/src/main/res/mipmap-*
-          if ! git diff --cached --quiet; then
-            if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-              git commit -m "Generate JARVIS PRO v3.3 launcher icons"
-              git push origin HEAD:main
-            else
-              echo "Non-main build: generated icons stay in the CI workspace; no repository write."
-            fi
-          fi
 
       - uses: actions/setup-java@v5
         with:
@@ -80,21 +72,8 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Commit dependency lockfile updates
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pubspec.lock
-          if ! git diff --cached --quiet; then
-            if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-              git commit -m "Sync Flutter dependency lockfile"
-              git push origin HEAD:main
-            else
-              echo "Non-main build: lockfile changes stay in the CI workspace; no repository write."
-            fi
-          fi
+      - name: Verify dependency lockfile is unchanged
+        run: git diff --exit-code -- pubspec.lock
 
       - name: Validate Termux worker syntax
         run: python3 -m py_compile termux_worker/jarvis_worker.py
@@ -105,7 +84,30 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Configure release signing (optional)
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.JARVIS_RELEASE_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.JARVIS_RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.JARVIS_RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.JARVIS_RELEASE_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$KEYSTORE_BASE64" && -n "$STORE_PASSWORD" && -n "$KEY_ALIAS" && -n "$KEY_PASSWORD" ]]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/jarvis-release.jks"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "Signing secrets missing; build will be unsigned and will not be published as a release."
+          fi
+
       - name: Build release APK
+        env:
+          JARVIS_RELEASE_KEYSTORE_PATH: ${{ steps.signing.outputs.signed == 'true' && format('{0}/jarvis-release.jks', runner.temp) || '' }}
+          JARVIS_RELEASE_STORE_PASSWORD: ${{ secrets.JARVIS_RELEASE_STORE_PASSWORD }}
+          JARVIS_RELEASE_KEY_ALIAS: ${{ secrets.JARVIS_RELEASE_KEY_ALIAS }}
+          JARVIS_RELEASE_KEY_PASSWORD: ${{ secrets.JARVIS_RELEASE_KEY_PASSWORD }}
         run: flutter build apk --release
 
       - name: Verify APK identity and signature
@@ -131,7 +133,12 @@ jobs:
           test "$APP_ID" = "com.mokshith.jarvis.ai"
           test "$VERSION_NAME" = "$PUBSPEC_VERSION"
           test "$VERSION_CODE" = "$PUBSPEC_CODE"
-          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          SIGNED="false"
+          if "$APKSIGNER" verify --verbose --print-certs "$APK"; then
+            SIGNED="true"
+          else
+            echo "APK is unsigned (expected for CI builds without release signing secrets)."
+          fi
           SHA256="$(sha256sum "$APK" | awk '{print $1}')"
           mkdir -p dist
           cp "$APK" "dist/JARVIS-PRO-v${VERSION_NAME}.apk"
@@ -139,6 +146,7 @@ jobs:
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "apk_name=JARVIS-PRO-v${VERSION_NAME}.apk" >> "$GITHUB_OUTPUT"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "signed=$SIGNED" >> "$GITHUB_OUTPUT"
           echo "APK SHA-256: $SHA256"
 
       - name: Upload verified APK artifact
@@ -149,21 +157,29 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish APK to GitHub Releases
-        if: github.ref == 'refs/heads/main'
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && needs.build.outputs.signed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: jarvis-pro-${{ needs.build.outputs.version_name }}-verified-apk
+          path: dist
+
+      - name: Publish signed APK to GitHub Releases
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          APK_NAME: ${{ needs.build.outputs.apk_name }}
+          SHA256: ${{ needs.build.outputs.sha256 }}
         run: |
           set -euo pipefail
-          VERSION_NAME="${{ steps.verify.outputs.version_name }}"
-          VERSION_CODE="${{ steps.verify.outputs.version_code }}"
           TAG="v${VERSION_NAME}"
-          APK_NAME="${{ steps.verify.outputs.apk_name }}"
-          NOTES="JARVIS PRO ${VERSION_NAME} (version code ${VERSION_CODE}). Local-first zero-mandatory-API-key AI. Termux worker is separately installed and started; social indexing is opt-in. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies Flutter analysis, tests, APK package identity and signature. Always-On microphone listening remains OFF by default; entering JARVIS mode alone does not start capture. Native one-shot recognizer teardown and media audio-focus protection are retained. CI APK uses Android debug signing; configure a private release key for production distribution."
-          # Keep the release tag anchored to the exact source used by this build.
-          BUILD_SHA="$(git rev-parse HEAD)"
-          git tag -f "$TAG" "$BUILD_SHA"
-          git push origin "refs/tags/${TAG}" --force
+          NOTES="JARVIS PRO ${VERSION_NAME} (version code ${VERSION_CODE}). APK is signed with the configured private release key. SHA-256: ${SHA256}. CI checks Flutter analysis, tests, package identity and APK signature."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
           else
