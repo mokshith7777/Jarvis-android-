@@ -154,6 +154,10 @@ jobs:
           TAG="v${VERSION_NAME}"
           APK_NAME="${{ steps.verify.outputs.apk_name }}"
           NOTES="JARVIS PRO ${VERSION_NAME} (version code ${VERSION_CODE}). Local-first zero-mandatory-API-key AI. Termux worker is separately installed and started; social indexing is opt-in. SHA-256: ${{ steps.verify.outputs.sha256 }}. CI verifies Flutter analysis, tests, APK package identity and signature. Always-On microphone listening remains OFF by default; entering JARVIS mode alone does not start capture. Native one-shot recognizer teardown and media audio-focus protection are retained. CI APK uses Android debug signing; configure a private release key for production distribution."
+          # Keep the release tag anchored to the exact source used by this build.
+          BUILD_SHA="$(git rev-parse HEAD)"
+          git tag -f "$TAG" "$BUILD_SHA"
+          git push origin "refs/tags/${TAG}" --force
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release edit "$TAG" --title "JARVIS PRO ${VERSION_NAME}" --notes "$NOTES" --latest
           else
