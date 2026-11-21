@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.3.0+330 — Main source update (release pending)
+
+- Main branch app version set to 3.3.0+330.
+- Existing animated splash refreshed with metallic cyan JARVIS title, crimson PRO title, and the subtitle PERSONAL AI COMMAND CENTER.
+- Added a central metallic-style J monogram to the existing reactor animation.
+- **Pending:** user-provided cinematic MP4 splash and launcher icon image are not yet committed to the repository; this version is not ready for a public release APK.
+- Do not label an APK as containing the video/icon until those assets are integrated and verified.
+
 ## 3.3.0+330 — Development build (not a public release)
 
 - Development version number prepared on feature branch.
