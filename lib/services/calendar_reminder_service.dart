@@ -73,6 +73,10 @@ class CalendarReminderService extends ChangeNotifier {
   Future<void> init() async {
     if (_initialized) return;
     _initialized = true;
+    if (!_timezoneInitialized) {
+      timezone_data.initializeTimeZones();
+      _timezoneInitialized = true;
+    }
 
     // Initialize local notifications
     const androidSettings =
