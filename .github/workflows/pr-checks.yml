@@ -22,22 +22,6 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Bootstrap Gradle wrapper (workspace only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          GRADLE_VERSION="9.3.1"
-          curl -fsSL "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp
-          mkdir -p /tmp/jarvis-pr-wrapper
-          cd /tmp/jarvis-pr-wrapper
-          printf '%s\n' "rootProject.name='jarvis-pr-wrapper'" > settings.gradle
-          /tmp/gradle-${GRADLE_VERSION}/bin/gradle wrapper --gradle-version "${GRADLE_VERSION}" --distribution-type all
-          mkdir -p "$GITHUB_WORKSPACE/android/gradle/wrapper"
-          cp gradlew gradlew.bat "$GITHUB_WORKSPACE/android/"
-          cp gradle/wrapper/gradle-wrapper.jar gradle/wrapper/gradle-wrapper.properties "$GITHUB_WORKSPACE/android/gradle/wrapper/"
-          chmod +x "$GITHUB_WORKSPACE/android/gradlew"
-
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.50.0"
@@ -46,6 +30,13 @@ jobs:
 
       - name: Resolve dependencies
         run: flutter pub get
+
+      - name: Verify committed Gradle wrapper
+        run: |
+          test -s android/gradlew
+          test -s android/gradle/wrapper/gradle-wrapper.jar
+          cd android
+          ./gradlew --version
 
       - name: Validate Termux worker syntax
         run: python3 -m py_compile termux_worker/jarvis_worker.py
