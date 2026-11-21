@@ -77,8 +77,16 @@ class SmartHomeService extends ChangeNotifier {
         'Home Assistant must use HTTPS, except for local/LAN hosts.',
       );
     }
-    final cleanPath = uri.path.replaceAll(RegExp(r'/+, '');
-    return uri.replace(path: cleanPath).toString().replaceAll(RegExp(r'/+\$'), '');
+
+    var cleanPath = uri.path;
+    while (cleanPath.endsWith('/')) {
+      cleanPath = cleanPath.substring(0, cleanPath.length - 1);
+    }
+    var normalized = uri.replace(path: cleanPath).toString();
+    while (normalized.endsWith('/')) {
+      normalized = normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
   }
 
   bool _isPrivateIpv4(String host) {
