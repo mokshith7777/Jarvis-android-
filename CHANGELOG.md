@@ -1,6 +1,14 @@
 # Changelog
 
-## 3.3.0+330 — Main source update (release pending)
+## 3.3.1+331 — Cinematic branding integration
+
+- Added `video_player` and registered the `assets/branding/` directory in Flutter assets.
+- Plays the committed cinematic splash video full-screen on launch, fades to the app on completion, and supports tap-to-skip.
+- Flutter tests bypass the video splash; initialization errors use a short static fallback.
+- CI generates legacy and adaptive launcher icon assets at all Android densities from the committed source PNG, with #050505 adaptive background, and syncs generated assets to `main`.
+- Release verification pending.
+
+## 3.3.0+330 — Earlier source update
 
 - Main branch app version set to 3.3.0+330.
 - Existing animated splash refreshed with metallic cyan JARVIS title, crimson PRO title, and the subtitle PERSONAL AI COMMAND CENTER.
