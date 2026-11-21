@@ -3,6 +3,7 @@ import android.app.ActivityManager
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
@@ -21,6 +22,7 @@ import android.os.Looper
 import android.os.Process
 import android.os.StatFs
 import android.provider.MediaStore
+import android.provider.CallLog
 import android.provider.Settings
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -96,6 +98,8 @@ class MainActivity : FlutterActivity() {
 
     private val cameraRequestCode = 9102
     private var pendingCameraResult: MethodChannel.Result? = null
+    private val callLogPermissionRequestCode = 9103
+    private var pendingCallLogPermissionResult: MethodChannel.Result? = null
     private var currentPhotoPath: String? = null
 
     // Sentry Tactical Anti-Theft Watchdog
@@ -113,6 +117,16 @@ class MainActivity : FlutterActivity() {
 
     // Charging & Power Telemetry Receiver
     private var powerReceiver: android.content.BroadcastReceiver? = null
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == callLogPermissionRequestCode) {
+            val pending = pendingCallLogPermissionResult
+            pendingCallLogPermissionResult = null
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            pending?.success(granted)
+        }
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -552,6 +566,60 @@ class MainActivity : FlutterActivity() {
                         }
                         startActivity(intent)
                         result.success(true)
+                    }
+
+                    "requestCallLogPermission" -> {
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                            result.success(true)
+                        } else if (pendingCallLogPermissionResult != null) {
+                            result.error("PERMISSION_REQUEST_ACTIVE", "A Call Log permission request is already active", null)
+                        } else {
+                            pendingCallLogPermissionResult = result
+                            requestPermissions(arrayOf(Manifest.permission.READ_CALL_LOG), callLogPermissionRequestCode)
+                        }
+                    }
+
+                    "getRecentCalls" -> {
+                        val limit = (call.argument<Number>("limit") ?: 15).toInt().coerceIn(1, 100)
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
+                            result.success(emptyList<Map<String, Any>>())
+                        } else {
+                            runBridgeDatabaseTask(result) {
+                                val calls = mutableListOf<Map<String, Any>>()
+                                val projection = arrayOf(
+                                    CallLog.Calls.NUMBER,
+                                    CallLog.Calls.CACHED_NAME,
+                                    CallLog.Calls.TYPE,
+                                    CallLog.Calls.DATE,
+                                    CallLog.Calls.DURATION
+                                )
+                                contentResolver.query(
+                                    CallLog.Calls.CONTENT_URI,
+                                    projection,
+                                    null,
+                                    null,
+                                    CallLog.Calls.DATE + " DESC"
+                                )?.use { cursor ->
+                                    val numberIndex = cursor.getColumnIndex(CallLog.Calls.NUMBER)
+                                    val nameIndex = cursor.getColumnIndex(CallLog.Calls.CACHED_NAME)
+                                    val typeIndex = cursor.getColumnIndex(CallLog.Calls.TYPE)
+                                    val dateIndex = cursor.getColumnIndex(CallLog.Calls.DATE)
+                                    val durationIndex = cursor.getColumnIndex(CallLog.Calls.DURATION)
+                                    while (cursor.moveToNext() && calls.size < limit) {
+                                        calls.add(
+                                            mapOf(
+                                                "number" to if (numberIndex >= 0) cursor.getString(numberIndex).orEmpty() else "",
+                                                "name" to if (nameIndex >= 0) cursor.getString(nameIndex).orEmpty() else "",
+                                                "type" to if (typeIndex >= 0) cursor.getInt(typeIndex) else 0,
+                                                "date" to if (dateIndex >= 0) cursor.getLong(dateIndex) else 0L,
+                                                "duration" to if (durationIndex >= 0) cursor.getLong(durationIndex) else 0L
+                                            )
+                                        )
+                                    }
+                                }
+                                calls
+                            }
+                        }
                     }
 
                     "getSmsMessages" -> {
