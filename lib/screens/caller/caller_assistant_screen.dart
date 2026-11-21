@@ -10,7 +10,7 @@ class _CallerAssistantScreenState extends State<CallerAssistantScreen> with Sing
  final appointments=AppointmentService.instance;
  final calls=CallerAssistantService.instance;
  late final TabController tabs;
- @override void initState(){super.initState();tabs=TabController(length:2,vsync:this);appointments.init();calls.init();}
+ @override void initState(){super.initState();tabs=TabController(length:2,vsync:this);appointments.init();calls.init().then((_) { if(calls.optedIn) calls.loadRecentCalls(); });}
  @override void dispose(){tabs.dispose();super.dispose();}
  Future<void> _edit({AppointmentItem? existing,CallLogEntry? call})async{
   final title=TextEditingController(text:existing?.title??(call==null?'':'Call follow-up'));
@@ -23,7 +23,7 @@ class _CallerAssistantScreenState extends State<CallerAssistantScreen> with Sing
    TextField(controller:caller,decoration:const InputDecoration(labelText:'Caller name'),style:const TextStyle(color:Colors.white)),
    TextField(controller:phone,decoration:const InputDecoration(labelText:'Phone number'),style:const TextStyle(color:Colors.white)),
    TextField(controller:notes,decoration:const InputDecoration(labelText:'Notes'),style:const TextStyle(color:Colors.white),maxLines:2),
-   ListTile(title:Text(scheduled.toLocal().toString(),style:const TextStyle(color:Colors.white70)),trailing:const Icon(Icons.schedule,color:Colors.deepPurpleAccent),onTap:()async{final d=await showDatePicker(context:ctx,initialDate:scheduled,firstDate:DateTime.now().subtract(const Duration(days:1)),lastDate:DateTime.now().add(const Duration(days:365)));if(d==null)return;final t=await showTimePicker(context:ctx,initialTime:TimeOfDay.fromDateTime(scheduled));if(t!=null)setDialog((){scheduled=DateTime(d.year,d.month,d.day,t.hour,t.minute);});}),
+   ListTile(title:Text(scheduled.toLocal().toString(),style:const TextStyle(color:Colors.white70)),trailing:const Icon(Icons.schedule,color:Colors.deepPurpleAccent),onTap:()async{final d=await showDatePicker(context:ctx,initialDate:scheduled,firstDate:DateTime(2000),lastDate:DateTime.now().add(const Duration(days:365)));if(d==null)return;final t=await showTimePicker(context:ctx,initialTime:TimeOfDay.fromDateTime(scheduled));if(t!=null)setDialog((){scheduled=DateTime(d.year,d.month,d.day,t.hour,t.minute);});}),
   ])),actions:[TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),ElevatedButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Save'))]));
   if(result==true){if(existing==null){await appointments.add(title:title.text,callerName:caller.text,phoneNumber:phone.text,scheduledAt:scheduled,notes:notes.text);}else{await appointments.update(existing.copyWith(title:title.text,callerName:caller.text,phoneNumber:phone.text,scheduledAt:scheduled,notes:notes.text));}}
   title.dispose();caller.dispose();phone.dispose();notes.dispose();
