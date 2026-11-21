@@ -32,7 +32,7 @@ String normalizeHomeAssistantBaseUrl(String raw) {
           (parsedAddress.type == InternetAddressType.IPv4 &&
               _isPrivateIpv4(parsedAddress.rawAddress)) ||
           (parsedAddress.type == InternetAddressType.IPv6 &&
-              _isPrivateIpv6(parsedAddress.rawAddress));
+              _isPrivateIpv6(parsedAddress.rawAddress)));
   final isLocalName = host == 'localhost' ||
       host.endsWith('.local') ||
       host.endsWith('.localhost');
