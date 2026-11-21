@@ -3,7 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';\nimport 'package:timezone/data/latest.dart' as timezone_data;\nimport 'package:timezone/timezone.dart' as tz;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:timezone/data/latest.dart' as timezone_data;
+import 'package:timezone/timezone.dart' as tz;
 
 class CalendarItem {
   final String id;
@@ -63,7 +65,8 @@ class CalendarReminderService extends ChangeNotifier {
       FlutterLocalNotificationsPlugin();
 
   final List<CalendarItem> _items = [];
-  bool _initialized = false;\n  static bool _timezoneInitialized = false;
+  bool _initialized = false;
+  static bool _timezoneInitialized = false;
 
   List<CalendarItem> get items => List.unmodifiable(_items);
 
