@@ -95,7 +95,7 @@ class MainActivity : FlutterActivity() {
     private var playResult: MethodChannel.Result? = null
 
     private val cameraRequestCode = 9102
-    private var pendingCameraResult: MethodChannel.Result? = null
+    private var pendingCameraResult: MethodChannel.Result? = null\n    private val callLogPermissionRequestCode = 9103\n    private var pendingCallLogPermissionResult: MethodChannel.Result? = null
     private var currentPhotoPath: String? = null
 
     // Sentry Tactical Anti-Theft Watchdog
@@ -113,6 +113,16 @@ class MainActivity : FlutterActivity() {
 
     // Charging & Power Telemetry Receiver
     private var powerReceiver: android.content.BroadcastReceiver? = null
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == callLogPermissionRequestCode) {
+            val pending = pendingCallLogPermissionResult
+            pendingCallLogPermissionResult = null
+            val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+            pending?.success(granted)
+        }
+    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -552,6 +562,17 @@ class MainActivity : FlutterActivity() {
                         }
                         startActivity(intent)
                         result.success(true)
+                    }
+
+                    "requestCallLogPermission" -> {
+                        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                            result.success(true)
+                        } else if (pendingCallLogPermissionResult != null) {
+                            result.error("PERMISSION_REQUEST_ACTIVE", "A Call Log permission request is already active", null)
+                        } else {
+                            pendingCallLogPermissionResult = result
+                            requestPermissions(arrayOf(Manifest.permission.READ_CALL_LOG), callLogPermissionRequestCode)
+                        }
                     }
 
                     "getRecentCalls" -> {
