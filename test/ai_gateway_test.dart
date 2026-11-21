@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -51,10 +52,18 @@ void main(){
    final started=await service.startLocalGateway(port:0);
    expect(started,isTrue);
    final port=service.localGatewayPort!;
-   final health=await http.get(Uri.parse('http://127.0.0.1:$port/health'));
-   expect(health.statusCode,200);expect(jsonDecode(health.body)['running'],true);
-   final models=await http.get(Uri.parse('http://127.0.0.1:$port/v1/models'));
-   expect(models.statusCode,200);expect(jsonDecode(models.body)['object'],'list');
+   Future<String> request(String path)async{
+    final socket=await Socket.connect('127.0.0.1',port);
+    socket.write('GET $path HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n');
+    final response=await socket.fold<List<int>>(<int>[],(buffer,data)=>buffer..addAll(data));
+    return utf8.decode(response);
+   }
+   final health=await request('/health');
+   expect(health.startsWith('HTTP/1.1 200'),isTrue);
+   expect(health,contains('"running":true'));
+   final models=await request('/v1/models');
+   expect(models.startsWith('HTTP/1.1 200'),isTrue);
+   expect(models,contains('"object":"list"'));
    await service.stopLocalGateway();
    expect(service.localGatewayRunning,isFalse);
    service.dispose();
