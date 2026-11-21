@@ -57,7 +57,9 @@ class SmartHomeService extends ChangeNotifier {
         uri.userInfo.isNotEmpty ||
         uri.query.isNotEmpty ||
         uri.fragment.isNotEmpty) {
-      throw const FormatException('Enter a valid Home Assistant URL without credentials, query, or fragment.');
+      throw const FormatException(
+        'Enter a valid Home Assistant URL without credentials, query, or fragment.',
+      );
     }
 
     // HTTPS is required for remote instances. HTTP is accepted only for local
@@ -71,9 +73,29 @@ class SmartHomeService extends ChangeNotifier {
         host.startsWith('fe80:') ||
         _isPrivateIpv4(host);
     if (uri.scheme != 'https' && !(uri.scheme == 'http' && localHost)) {
-      throw const FormatException('Home Assistant must use HTTPS, except for local/LAN hosts.');
+      throw const FormatException(
+        'Home Assistant must use HTTPS, except for local/LAN hosts.',
+      );
     }
-    return uri.replace(path: uri.path.replaceAll(RegExp(r'/+
+    final cleanPath = uri.path.replaceAll(RegExp(r'/+\$'), '');
+    return uri.replace(path: cleanPath).toString().replaceAll(RegExp(r'/+\$'), '');
+  }
+
+  bool _isPrivateIpv4(String host) {
+    final parts = host.split('.');
+    if (parts.length != 4) return false;
+    final octets = parts.map(int.tryParse).toList();
+    if (octets.any((value) => value == null || value < 0 || value > 255)) {
+      return false;
+    }
+    final a = octets[0]!;
+    final b = octets[1]!;
+    return a == 10 ||
+        a == 127 ||
+        (a == 192 && b == 168) ||
+        (a == 172 && b >= 16 && b <= 31) ||
+        (a == 169 && b == 254);
+  }
 
   Map<String, String> _headers() {
     final token = SettingsService.instance.homeAssistantToken.trim();
@@ -109,7 +131,7 @@ class SmartHomeService extends ChangeNotifier {
       }
     } catch (e) {
       _isConnecting = false;
-      final err = 'Unable to reach Home Assistant at $base: $e';
+      final err = 'Unable to reach Home Assistant at ${settings.homeAssistantUrl}: $e';
       _lastError = err;
       notifyListeners();
       return (success: false, message: err);
