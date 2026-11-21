@@ -3,6 +3,7 @@ import android.app.ActivityManager
 import android.app.AppOpsManager
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
@@ -21,6 +22,7 @@ import android.os.Looper
 import android.os.Process
 import android.os.StatFs
 import android.provider.MediaStore
+import android.provider.CallLog
 import android.provider.Settings
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -95,7 +97,9 @@ class MainActivity : FlutterActivity() {
     private var playResult: MethodChannel.Result? = null
 
     private val cameraRequestCode = 9102
-    private var pendingCameraResult: MethodChannel.Result? = null\n    private val callLogPermissionRequestCode = 9103\n    private var pendingCallLogPermissionResult: MethodChannel.Result? = null
+    private var pendingCameraResult: MethodChannel.Result? = null
+    private val callLogPermissionRequestCode = 9103
+    private var pendingCallLogPermissionResult: MethodChannel.Result? = null
     private var currentPhotoPath: String? = null
 
     // Sentry Tactical Anti-Theft Watchdog
