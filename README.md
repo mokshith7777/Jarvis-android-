@@ -1,70 +1,80 @@
 # JARVIS PRO
 
-**Android-first personal AI assistant** built with Flutter, Dart, and native Android integrations.
+Android-first personal AI assistant built with Flutter, Dart, and native Android integrations.
 
-- **Package ID:** `com.mokshith.jarvis.ai`
-- **Latest public release:** [v3.3.1](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.3.1)
-- **Source version:** `3.3.1+331`
-- **Platform:** Android (API 26+)
-- **Stack:** Flutter/Dart + Kotlin + optional Termux local worker
+> **Experimental software.** This repository and APK are not a security-certified product. Review the permissions, source, and security notes before installation. Do not use with confidential data, production credentials, or accounts you cannot risk.
 
-JARVIS PRO combines conversational AI, voice input/output, configurable AI providers, user-approved Android workflows, and optional local AI tooling. It is experimental software; capabilities depend on Android version, permissions, device hardware, installed apps, and configured providers.
+## Project overview
 
-## Download
+- Android application with chat, voice input/output, configurable AI provider connections, and user-approved device workflows.
+- Optional Termux companion worker for local tools and model integrations.
+- Feature availability depends on Android version, permissions, installed apps, hardware, and configured services.
 
-Download the versioned APK from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases). Review release notes and checksums before installing. **The existing v3.3.1 release is a debug-signed testing build, not a production release.** New CI builds without signing secrets are uploaded as testing artifacts only. Signed publishing is restricted to version tags and requires a private signing key.
+## Downloads and distribution
+
+Download APK builds from [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases).
+
+GitHub **Packages is not used** for this project. APK distribution is via Releases and workflow artifacts; no container or package registry is published. Do not install workflow artifacts as production builds.
+
+- Latest public release: [v3.3.1](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.3.1)
+- Current source version: 3.3.1+331
+- Existing public v3.3.1 APK is debug-signed and for testing only.
+- Release publication requires a privately-held signing key configured in GitHub Actions. Builds without it are not published as Releases.
 
 ## Features
 
 - Chat, voice input, and text-to-speech.
-- Local-first configuration with optional hosted AI providers and local model endpoints.
-- Optional Termux worker for local inference and media tools; installed and started separately.
-- User-triggered Android app and screen workflows through the accessibility service.
-- Local task history, preferences, and optional indexing.
-- Telegram bot integration when explicitly configured and paired with authorized chat IDs.
-- Cinematic intro and branded launcher assets.
+- Configurable hosted AI providers and local model endpoints.
+- Optional local Termux worker.
+- User-driven Android app/screen workflows.
+- Local task history, settings, and optional indexing.
+- Optional integrations such as Telegram and Home Assistant.
 
-Feature availability is conditional. Sensitive features require user permission or explicit enablement; no permission is silently bypassed.
+These features may request sensitive permissions. Enable only features you use and review each permission before granting it.
 
 ## Privacy and permissions
 
-JARVIS may request sensitive Android permissions for specific features, including microphone, camera, contacts, SMS, notifications, accessibility, overlay, storage, app visibility, and usage access. Review each permission prompt and only enable features you need.
+JARVIS can request microphone, camera, contacts, SMS, notifications, accessibility, overlay, storage, app-visibility, usage-access, or Shizuku permissions. Some integrations may process screen/notification data or send requests to configured third-party providers.
 
-- Always-on microphone listening is OFF by default.
-- Social/notification indexing is opt-in and uses an allowlist.
-- Screen automation is user-driven and can interact with visible app UI.
-- Telegram actions require local bot configuration and authorized chat IDs.
-- Local index data is stored in app-private SQLite and can be cleared from the app.
-- Local Termux worker is intended to bind to loopback; see its documentation and the security notes.
+- Always-on listening is intended to be disabled by default.
+- Indexing and sensitive integrations are opt-in.
+- Review provider privacy terms and data handling before connecting accounts.
+- Avoid entering passwords, API keys, private messages, financial data, or other confidential content into experimental builds.
+- Clear local app data and revoke permissions when you no longer use a feature.
 
-Read [SECURITY.md](SECURITY.md) before installing or exposing any local endpoints.
+## Security status
 
-## Build from source
+See [SECURITY.md](SECURITY.md) for the review scope, known risks, mitigation status, and reporting guidance. This is a code/configuration review, not a penetration test or a guarantee that the application has no vulnerabilities.
 
-Prerequisites: Flutter SDK matching `pubspec.yaml`, Java 17, Android SDK/build tools, and Python for the Termux worker checks.
+Known outstanding risks include local worker authentication, SSRF/DNS-rebinding defenses, broad Android permissions, global cleartext networking, release signing configuration, and testing on physical devices.
+
+## Build and test
+
+Prerequisites: Flutter SDK compatible with the project, Java 17, Android SDK/build tools, and Python 3 for worker syntax checks.
 
 ```bash
 flutter pub get
 flutter analyze
 flutter test
-flutter build apk --release
+flutter build apk --debug
 ```
 
-GitHub Actions validates Dart analysis, tests, Termux worker syntax, the committed Gradle wrapper, APK package/version identity, and signature. To publish a new signed release, create and push a matching version tag (for example `v3.4.0`) after updating `pubspec.yaml`, and configure these repository secrets: `JARVIS_RELEASE_KEYSTORE_BASE64`, `JARVIS_RELEASE_STORE_PASSWORD`, `JARVIS_RELEASE_KEY_ALIAS`, and `JARVIS_RELEASE_KEY_PASSWORD`. Keep the keystore and passwords private. Without them, CI uploads a debug APK artifact for testing only; it will not publish a GitHub Release. The release job refuses to overwrite an existing release tag.
+CI workflows are in [.github/workflows](.github/workflows). Inspect workflow logs and release notes; a green build does not prove security.
 
-## Project status
+## Repository metadata / About
 
-| Version | Status |
-|---|---|
-| 3.3.1+331 | Public release: cinematic splash video + launcher branding integration |
-| 3.3.0+330 | Earlier source iteration |
-| 3.2.0+320 | Development branch work: provider routing, local-first appointments, and opt-in metadata workflows |
+Suggested GitHub About description:
 
-## Project links
+**Android-first AI assistant with voice, configurable AI providers, local tools, and user-controlled device workflows.**
 
-- [Releases](https://github.com/mokshith7777/Jarvis-android-/releases) (APK distribution; GitHub Packages is not used)
+Suggested topics: `android`, `flutter`, `dart`, `ai-assistant`, `voice-assistant`, `termux`.
+
+## Links
+
+- [Releases (APK)](https://github.com/mokshith7777/Jarvis-android-/releases)
+- [Actions / CI](https://github.com/mokshith7777/Jarvis-android-/actions)
+- [Security report](SECURITY.md)
 - [Changelog](CHANGELOG.md)
-- [Actions](https://github.com/mokshith7777/Jarvis-android-/actions)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Issues](https://github.com/mokshith7777/Jarvis-android-/issues)
 
