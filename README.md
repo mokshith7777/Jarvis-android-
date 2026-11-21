@@ -4,7 +4,7 @@
 
 - **Package ID:** `com.mokshith.jarvis.ai`
 - **Current public release:** [v3.1.0](https://github.com/mokshith7777/Jarvis-android-/releases/tag/v3.1.0)
-- **Latest development version:** `3.3.0+330` (feature branch; not yet a published release)
+- **Current main source version:** `3.3.0+330` (branding update in progress; not yet a published release)
 - **Platform:** Android
 - **Build:** Flutter / Dart + native Android
 
@@ -13,9 +13,7 @@
 ## Download
 Use the [GitHub Releases page](https://github.com/mokshith7777/Jarvis-android-/releases) for public, versioned APK downloads. Only releases listed there are public releases.
 
-The v3.3.0 development APK is a CI artifact, not a public release:
-- [v3.3.0 CI build #200](https://github.com/mokshith7777/Jarvis-android-/actions/runs/44887974021)
-- [Draft PR #5](https://github.com/mokshith7777/Jarvis-android-/pull/5)
+The source version on `main` is now v3.3.0. A public release will be created only after the cinematic splash video and launcher icon are integrated and the APK is verified.
 
 ## Highlights
 - Chat, voice input and text-to-speech modes.
@@ -53,7 +51,7 @@ CI also validates Termux worker syntax and checks APK identity/signature before 
 |---|---|
 | 3.1.0 | Latest public GitHub release |
 | 3.2.0 | Development branch / Draft PR #5 |
-| 3.3.0+330 | Branding/version preparation; CI build #200 passed. New icon/video assets are not yet integrated into repository/APK. |
+| 3.3.0+330 | Main source version bumped and vector splash branding refreshed. Cinematic MP4 and uploaded launcher PNG are still pending repository integration. |
 
 ## Releases & changelog
 - [GitHub Releases](https://github.com/mokshith7777/Jarvis-android-/releases)
