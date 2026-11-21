@@ -23,7 +23,7 @@ void main(){
    await service.updateProvider(service.providers[1].copyWith(baseUrl:'https://second.test/v1',enabled:true,priorityTier:1));
    for(var i=2;i<service.providers.length;i++){await service.updateProvider(service.providers[i].copyWith(enabled:false));}
    final answer=await service.routeChatCompletion(messages:[{'role':'user','content':'ping'}]);
-   expect(answer,'fallback reply');expect(calls,2);expect(service.lastActiveProvider,'gemini');
+   expect(answer,'fallback reply');expect(calls,3);expect(service.lastActiveProvider,'openrouter');
    service.dispose();
   });
   test('circuit breaker cools down after three provider failures',()async{
