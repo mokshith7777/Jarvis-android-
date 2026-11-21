@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.3.0+330 — Development (not yet publicly released)
+
+- Bumped the app version to 3.3.0 (build 330).
+- Refreshed public-facing README to distinguish stable releases from development builds.
+- Branding assets supplied for this version: cinematic 8-second portrait splash video and reactor launcher icon.
+- **Branding integration status:** source assets have been prepared, but they are not yet committed to the Android project/APK due to the current binary-transfer limitation. The app still uses the existing Flutter splash implementation.
+- CI build #200 on the feature branch passed Flutter analysis, tests, release APK build, APK identity/signature verification, and artifact upload. It is a development artifact, not a public release.
+- Build #200 artifact: [Actions run](https://github.com/mokshith7777/Jarvis-android-/actions/runs/44887974021).
+
+## 3.2.0+320 — Development
+
+- Added pure-Dart provider fallback router, loopback HTTP gateway, provider configuration UI, telemetry, and cooldown circuit breaker.
+- Added local-first appointments with CRUD, status transitions, calendar export, and explicit Telegram summary actions.
+- Added opt-in call triage with native Call Log permission request and metadata-only recent-call query; create appointments or review Telegram summaries before sending.
+- Added navigation and bumped version to 3.2.0+320.
+- Package ID and min SDK unchanged.
+- Telegram is the only external messaging integration. No Firebase or WhatsApp was added.
+- No automatic Telegram sends: UI send actions require confirmation.
+- Call metadata is permission-gated and no call audio is accessed.
+- Local AI direct mode remains fallback when embedded gateway is stopped or disabled.
+
 ## 3.0.0+300
 
 - Defaulted to JARVIS Local Index AI at http://127.0.0.1:9000/v1 with model local-vision.
