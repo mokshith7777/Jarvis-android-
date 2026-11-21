@@ -72,7 +72,7 @@ class AiGatewayService extends ChangeNotifier {
       try{final response=await _client.post(Uri.parse(p.baseUrl.replaceAll(RegExp(r'/+$'),'')+'/chat/completions'),headers:{'Content-Type':'application/json',if(key.isNotEmpty)'Authorization':'Bearer '+key,if(p.id=='openrouter')'HTTP-Referer':'https://jarvis.local',if(p.id=='openrouter')'X-Title':'JARVIS PRO'},body:jsonEncode({'model':p.model,'messages':messages,'max_tokens':maxTokens,'temperature':temperature,'stream':false})).timeout(const Duration(seconds:60));
         s.lastLatency=DateTime.now().difference(start);if(response.statusCode<200||response.statusCode>=300){final body=response.body;final snippet=body.length>250?body.substring(0,250):body;throw AiGatewayException('HTTP '+response.statusCode.toString()+': '+snippet,statusCode:response.statusCode);}
         final decoded=jsonDecode(utf8.decode(response.bodyBytes));final choices=decoded is Map?decoded['choices']:null;if(choices is! List||choices.isEmpty)throw const AiGatewayException('No choices in response');
-        final content=choices.first is Map?choices.first['message']?['content']:null;
+        final firstChoice=choices.first;\n        final content=firstChoice is Map?firstChoice['message']?['content']:null;
         if(content is String&&content.trim().isNotEmpty){s.consecutiveFailures=0;s.cooldownUntil=null;_lastProvider=p.id;notifyListeners();return content;}
         if(content is List){final joined=content.map((x)=>x is Map?(x['text']??'').toString():x.toString()).join();if(joined.trim().isNotEmpty){s.consecutiveFailures=0;s.cooldownUntil=null;_lastProvider=p.id;notifyListeners();return joined;}}
         throw const AiGatewayException('Empty assistant content');
