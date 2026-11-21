@@ -6,9 +6,9 @@
 - Plays the committed cinematic splash video full-screen on launch, fades to the app on completion, and supports tap-to-skip.
 - Flutter tests bypass the video splash; initialization errors use a short static fallback.
 - CI generates legacy and adaptive launcher icon assets at all Android densities from the committed source PNG, with #050505 adaptive background, and syncs generated assets to `main`.
-- Release verification pending.
+- Published as GitHub Release v3.3.1. APK package/version identity and signature are checked in CI; APK signing remains debug signing for test distribution.
 
-## 3.3.0+330 — Earlier source update
+## 3.3.0+330 — Earlier source update (superseded)
 
 - Main branch app version set to 3.3.0+330.
 - Existing animated splash refreshed with metallic cyan JARVIS title, crimson PRO title, and the subtitle PERSONAL AI COMMAND CENTER.
@@ -16,7 +16,7 @@
 - **Pending:** user-provided cinematic MP4 splash and launcher icon image are not yet committed to the repository; this version is not ready for a public release APK.
 - Do not label an APK as containing the video/icon until those assets are integrated and verified.
 
-## 3.3.0+330 — Development build (not a public release)
+## 3.3.0+330 — Development build (not a public release; historical notes)
 
 - Development version number prepared on feature branch.
 - README refreshed to show the latest public release and in-development status.
