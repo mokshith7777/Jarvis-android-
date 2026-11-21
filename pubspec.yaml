@@ -1,7 +1,7 @@
 name: jarvis_android
 description: "JARVIS PRO: a voice-driven Android assistant with user-controlled workflows and native integrations."
 publish_to: 'none'
-version: 3.1.0+310
+version: 3.2.0+320
 
 environment:
   sdk: ^3.12.2
