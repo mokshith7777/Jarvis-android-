@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """Loopback-only JARVIS worker for Termux. No API keys or cloud inference."""
 import html
+import ipaddress
 import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import threading
 import time
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import quote_plus, urlparse, parse_qs
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen, build_opener, HTTPRedirectHandler
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -133,12 +135,38 @@ class PageText(HTMLParser):
             if value:
                 self.parts.append(value)
 
-def extract_page(url):
-    if urlparse(url).scheme not in ("http", "https"):
-        raise HTTPException(400, "Only HTTP and HTTPS pages can be fetched.")
-    req = Request(url, headers={"User-Agent": "Mozilla/5.0 JARVISLocal/3.0"})
+def validate_public_http_url(url):
+    """Reject non-web schemes, credentialed URLs, and non-public DNS destinations."""
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise HTTPException(400, "Only public HTTP/HTTPS URLs are allowed.")
+    if parsed.username is not None or parsed.password is not None:
+        raise HTTPException(400, "URLs containing credentials are not allowed.")
     try:
-        with urlopen(req, timeout=15) as response:
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        addresses = socket.getaddrinfo(parsed.hostname, port, type=socket.SOCK_STREAM)
+        if not addresses:
+            raise ValueError("No DNS addresses")
+        for address in addresses:
+            ip = ipaddress.ip_address(address[4][0])
+            if not ip.is_global:
+                raise HTTPException(400, "Private, loopback, and reserved network targets are blocked.")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(400, "Unable to validate destination host.") from exc
+
+class ValidatingRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_public_http_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+def extract_page(url):
+    validate_public_http_url(url)
+    req = Request(url, headers={"User-Agent": "Mozilla/5.0 JARVISLocal/3.0"})
+    opener = build_opener(ValidatingRedirectHandler())
+    try:
+        with opener.open(req, timeout=15) as response:
             raw = response.read(1800000).decode(response.headers.get_content_charset() or "utf-8", "replace")
     except Exception as exc:
         raise HTTPException(502, "Page fetch failed: " + str(exc)) from exc
